@@ -2,7 +2,7 @@
 
 /* the attribute "used" tells the compiler to not inline this function */
 __attribute__((used))
-unsigned int testasm (unsigned char a, unsigned char b) {
+unsigned int sumval (unsigned char a, unsigned char b) {
   unsigned int out;
 
   asm volatile (R"(
@@ -15,29 +15,16 @@ unsigned int testasm (unsigned char a, unsigned char b) {
    .text
 
 start_of_assembly:
-   ; Your assembly language program goes here
-   ;
-   ; For this example, your program must not modify any registers other than 
-   ; r24 and r25. In other words, save and restore all the registers that
-   ; are modified by your code.
-
-   ; Tell the compiler to move the arguments a, b into registers 
-   ; r24, r25 respectively
-   ;
+   ; We adopt a similar approach in Part 1 of the lab
+   ; Move arguments a and b into register r24 and r25
    mov r24,%1
    mov r25,%2
    ;
-   ;  --- YOUR CODE GOES HERE ---
-   ;       r24 = a, r25 = b
-   ;
+   ; We add r25 to r24, clearing r25 and branching conditional on the carry bit
    add r24,r25
    clr r25
    brcc end_of_assembly
    ldi r25, 1 
-   ;
-   ;  --- YOUR CODE ENDS ---
-   ;      The result must be in the register pair r25:r24
-   ;      You can also rjmp to the label end_of_assembly if you need to.
    ;
 end_of_assembly: 
    ; -- move r25:r24 to the 16-bit word in variable out
@@ -68,15 +55,12 @@ unsigned int diffval (unsigned char a, unsigned char b) {
    .text
 
 start_diffval:
-   ; Tell the compiler to move the arguments a, b into registers 
-   ; r24, r25 respectively
-   ;
+   ; Move arguments a and b into register r24 and r25
    mov r24,%1
    mov r25,%2
    ;
-   ;  --- YOUR CODE GOES HERE ---
-   ;       r24 = a, r25 = b
-   ;
+   ; Comparing which value is greater, subtract the smaller
+   ; value from the greater value.
    cp r24,r25
    brcs b_greater
    sub r24,r25
@@ -85,12 +69,10 @@ b_greater:
    sub r25,r24
    mov r24,r25
    ;
-   ;  --- YOUR CODE ENDS ---
-   ;      The result must be in the register pair r25:r24
-   ;      You can also rjmp to the label end_of_assembly if you need to.
-   ;
 end_diffval: 
    ; -- move r25:r24 to the 16-bit word in variable out
+   ; Remember that since we are subtracting 8-bit number from another,
+   ; the maximum value is 255, so we always clear r25.
    clr r25
    movw %0,r24
 
