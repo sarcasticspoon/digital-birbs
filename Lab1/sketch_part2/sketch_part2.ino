@@ -3,10 +3,18 @@
 void setup() {
   // put your setup code here, to run once
   Serial.begin(9600);
+  Serial.print("The sum of 128 and 255 is: ");
+  Serial.println(sum_and_diff(128, 255));
   Serial.print("The sum of 128 and 128 is: ");
-  Serial.println(testasm(0, 0));
-  Serial.print("The diff of 128 and 39 is: ");
-  Serial.println(diffval(128, 128));
+  Serial.println(sum_and_diff(128, 128));
+  Serial.print("The sum of 255 and 255 is: ");
+  Serial.println(sum_and_diff(255, 255));
+  Serial.print("The sum of 0 and 0 is: ");
+  Serial.println(sum_and_diff(0, 0));
+  Serial.print("The sum of 1 and 0 is: ");
+  Serial.println(sum_and_diff(1, 0));
+  Serial.print("The sum of 0 and 1 is: ");
+  Serial.println(sum_and_diff(0, 1));
   pinMode (13, OUTPUT);
 }
 
