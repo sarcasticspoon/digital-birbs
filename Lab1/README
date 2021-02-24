@@ -1,0 +1,82 @@
+====CPSC338/EENG348 Digital Systems Lab 1 Submission====
+Completed by Ivy Fan (ivf3) and Bradley Yam (by87)
+
+This lab is broken up into three parts, which correspond to the folders
+sketch_part1, sketch_part2, and sketch_part3. The code for each part is
+found in the folder. The rest of the readme will expand on the expected 
+behaviour of the functions in each part, as well as their stack representations.
+
+sketch_part1:
+
+testasm(unsigned char a, unsigned char b); adds the numerical value of both 
+a and b together. testasm does not push any registers onto the stack. Moreover,
+testasm uses the add instruction and branches on the carry flag, rather than 
+using the adc instruction. 
+
+sketch_part2:
+
+unsigned int sum_and_diff (unsigned char a, unsigned char b) takes the sum of
+a and b and adds the absolute difference of a and b to it. The end result 
+algebraically should be, assuming without loss of generality that a > b, is 
+(a + b) + (a - b) = 2a. 
+
+sum_and_diff calls sub-functions in assembly "start_of_sum" and "start_of_diff".
+"start_of_sum" returns (a + b) in r24, r25. "start_of_diff" returns (a - b)
+in r24, r25. Before "start_of_diff" is called, the returned values (a + b) are
+pushed onto the stack:
+
+\______________/
+|  ret addr    |
+|______________|
+|(a+b) low bits|
+|______________|
+|(a+b) hi  bits|
+|______________|
+/              \
+
+After "start_of_diff" is called, the program counter from when it is called is 
+also pushed onto the stack.
+
+\______________/
+|  ret addr    |
+|______________|
+|(a+b) low bits|
+|______________|
+|(a+b) hi  bits|
+|______________|
+|  ret addr 2  |
+|______________|
+/              \
+
+After it returns, (a+b) low bits are popped off the stack into the scratch register
+r0 and added to the return value. The hi bits are automatically added into r25
+because the return value of (a - b) where a and b are both 8-bit values is guaranteed
+to be an 8-bit value assuming a > b.
+
+sketch_part3:
+
+unsigned int fib (unsigned char n) is a recursive function that outputs the nth
+fibonacci series number, for fib(n) < 255.
+
+The typical stack frame of fib looks like this at the moment it begins, the 
+return address stores the program counter from where the function was last called.
+If the value of n in r24 is less than two, the program simply returns the value of n.
+Otherwise, it stores n on the stack and calls fib on (n-1). It continues until n = 2.
+
+\______________/
+|  ret addr    |
+|______________|
+|  n           |
+|______________|
+|  ret addr 2  |
+|______________|
+|  n - 1       |
+|______________|
+    ...
+ ______________
+|  2           |
+|______________|
+/              \
+
+As each stack frame is popped off the stack, the fib(n) of each stack frame is returned
+in r24. These are summed together so that f(n) = f(n-1) + f(n-2). 
