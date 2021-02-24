@@ -3,10 +3,12 @@
 void setup() {
   // put your setup code here, to run once
   Serial.begin(9600);
-  Serial.print("The sum of 128 and 128 is: ");
+  Serial.print("Zeroes: 0+0=");
   Serial.println(testasm(0, 0));
-  Serial.print("The diff of 128 and 39 is: ");
-  Serial.println(diffval(128, 128));
+  Serial.print("<8 bit sum: 43+21=");
+  Serial.println(diffval(43, 21));
+  Serial.print(">=16 bit sum: 169+169=");
+  Serial.println(diffval(169, 169));
   pinMode (13, OUTPUT);
 }
 

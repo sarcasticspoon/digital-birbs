@@ -30,10 +30,11 @@ start_of_assembly:
    ;  --- YOUR CODE GOES HERE ---
    ;       r24 = a, r25 = b
    ;
-   add r24,r25
-   clr r25
-   brcc end_of_assembly
-   ldi r25, 1 
+   add r24,r25 ; add the two values, setting carry bit, and store result in r24
+   clr r25     ; clear r25 (higher order bits) 
+   brcc end_of_assembly ; if carry bit is clear, jump to end_of_assembly
+   ldi r25, 1  ; else, load constant 1 into r25 for the carry bit. 
+   ; using r25:r24 as a pair of registers means this 1 will represent 2^8
    ;
    ;  --- YOUR CODE ENDS ---
    ;      The result must be in the register pair r25:r24
