@@ -16,21 +16,21 @@ unsigned int fib (unsigned char a) {
 
 fib_recurse:
    ;first argument (n) is in r24
-   ldi r25,2
-   cp r24,r25
-   brlo less_than_two
+   ldi r25,2   ;value to compare n to
+   cp r24,r25  ;check if n is less than 2
+   brlo less_than_two ;branch if r24 < 2
 more_than_two:
-   push r24
-   subi r24,1
-   call fib_recurse
-   mov r22,r24
-   pop r24
-   subi r24,2
-   push r22
-   call fib_recurse
-   pop r22
-   add r24,r22
-   ret
+   push r24          ;save n to the stack
+   subi r24,1        ;get n - 1
+   call fib_recurse  ;call fib(n-1)
+   mov r22,r24       ;put fib(n-1) in r22
+   pop r24           ;put r24 = n
+   subi r24,2        ;get n-2
+   push r22          ;save fib(n-1) on the stack
+   call fib_recurse  ;call fib(n-2)
+   pop r22           ;get back fib(n-2)
+   add r24,r22       ;add fib(n-1) + fib(n-2)
+   ret               
 less_than_two:
    clr r25
    ret

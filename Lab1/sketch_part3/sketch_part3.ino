@@ -29,15 +29,15 @@ void setup() {
   Serial.println(fib(11));
   Serial.print("Fib(12):");
   Serial.println(fib(12));
-  Serial.print("Fib(13):");
+  Serial.print("Fib(13) == 233:");
   Serial.println(fib(13));
-  Serial.print("Fib(14):");
+  Serial.print("Fib(14) == 377 (wraparound):");
   Serial.println(fib(14));
-  Serial.print("Fib(15):");
+  Serial.print("Fib(15) == 610 (wraparound):");
   Serial.println(fib(15));
-  Serial.print("Fib(16):");
+  Serial.print("Fib(16) == 987 (wraparound):");
   Serial.println(fib(16));
-  Serial.print("Fib(17):");
+  Serial.print("Fib(17) == 1597 (wraparound):");
   Serial.println(fib(17));
   pinMode (13, OUTPUT);
 }
