@@ -9,6 +9,8 @@ void setup() {
   Serial.println(diffval(43, 21));
   Serial.print(">=16 bit sum: 169+169=");
   Serial.println(diffval(169, 169));
+  Serial.print("8 bit summands: 255+255=");
+  Serial.println(diffval(255, 255));
   pinMode (13, OUTPUT);
 }
 
