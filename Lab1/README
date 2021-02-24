@@ -88,8 +88,6 @@ We also save fib(n-1) in between recursive calls, so at some point the stack loo
 |______________|
 |  n           |
 |______________|
-|  ret addr 2  |
-|______________|
 |  fib(n - 1)  |
 |______________|
 /              \
