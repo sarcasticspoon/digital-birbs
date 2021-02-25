@@ -10,7 +10,7 @@ void setup() {
   Serial.print("b>a: sum_and_diff(0, 1): ");
   Serial.println(sum_and_diff(0, 1));
   Serial.print("b>a, 8+ bit value: sum_and_diff(250, 90): ");
-  Serial.println(sum_and_diff(169, 169));
+  Serial.println(sum_and_diff(250, 90));
   Serial.print("a=b: sum_and_diff(169, 169): ");
   Serial.println(sum_and_diff(169, 169));
   Serial.print("8-bit summands: sum_and_diff(255, 255): ");

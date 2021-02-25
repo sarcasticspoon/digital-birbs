@@ -6,11 +6,11 @@ void setup() {
   Serial.print("Zeroes: 0+0=");
   Serial.println(testasm(0, 0));
   Serial.print("<8 bit sum: 43+21=");
-  Serial.println(diffval(43, 21));
+  Serial.println(testasm(43, 21));
   Serial.print(">=16 bit sum: 169+169=");
-  Serial.println(diffval(169, 169));
+  Serial.println(testasm(169, 169));
   Serial.print("8 bit summands: 255+255=");
-  Serial.println(diffval(255, 255));
+  Serial.println(testasm(255, 255));
   pinMode (13, OUTPUT);
 }
 
