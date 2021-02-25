@@ -21,9 +21,11 @@ algebraically should be, assuming without loss of generality that a > b, is
 (a + b) + (a - b) = 2a. 
 
 sum_and_diff calls sub-functions in assembly "start_of_sum" and "start_of_diff".
-"start_of_sum" returns (a + b) in r24, r25. "start_of_diff" returns (a - b)
-in r24, r25. Before "start_of_diff" is called, the returned values (a + b) are
-pushed onto the stack:
+the main function does not push anything onto the stack, and "start_of_sum" 
+returns (a + b) in r24, r25. but "start_of_diff" uses r24 and r22 to receive arguments
+and returns (a - b) in r24, r25. Before "start_of_diff" is called, the main function 
+pushes the return values from start_of_sum onto the stack, shown below. Then it calls
+"start_of_diff".
 
 \______________/
 |  ret addr    |
@@ -31,7 +33,7 @@ pushed onto the stack:
 |(a+b) low bits|
 |______________|
 |(a+b) hi  bits|
-|______________|
+|______________|<- stack pointer (in main function)
 /              \
 
 After "start_of_diff" is called, the program counter from when it is called is 
@@ -45,23 +47,61 @@ also pushed onto the stack.
 |(a+b) hi  bits|
 |______________|
 |  ret addr 2  |
+|______________|<- stack pointer (in start_of_diff)
+/              \
+
+After start_of_diff returns to the main function, the stack frame looks as follows:
+
+\______________/
+|  ret addr    |
+|______________|
+|(a+b) low bits|
+|______________|
+|(a+b) hi  bits|
+|______________|<- stack pointer (in main function)
+|  ret addr 2  |
 |______________|
 /              \
 
-After it returns, (a+b) low bits are popped off the stack into the scratch register
-r0 and added to the return value. The hi bits are automatically added into r25
-because the return value of (a - b) where a and b are both 8-bit values is guaranteed
-to be an 8-bit value assuming a > b.
+In the main function, the hi bits of (a+b) are popped into r25 and the low bits
+are popped off the stack into the scratch register r0. The low bits are added
+with the result of (a-b) in r24, and the carry bit is added to r25 using the adc
+instruction. The stack frame at this point looks like this: 
+\______________/
+|  ret addr    |
+|______________|<- stack pointer (in main function)
+/              \
+
 
 sketch_part3:
 
 unsigned int fib (unsigned char n) is a recursive function that outputs the nth
 fibonacci series number, for fib(n) < 255.
 
-The typical stack frame of fib looks like this at the moment it begins, the 
-return address stores the program counter from where the function was last called.
+On entry to fib_recurse from the main function, the stack frame looks like this:
+\______________/
+|  ret addr    |
+|   of main    |
+|______________|<- stack pointer (in fib_recurse(n))
+/              \
+
+fib_recurse pushes the value of the argument received, n, onto the stack, and
+then calls fib(n-1), which results in the following stack frame:
+
+\______________/
+|  ret addr    |
+|   of main    |
+|______________|
+|  n           |
+|______________|
+|  ret addr    |
+|  of fib(n)   |
+|______________|<- stack pointer (in fib_recurse(n-1))
+/              \
+
 If the value of n in r24 is less than two, the program simply returns the value of n.
 Otherwise, it stores n on the stack and calls fib on (n-1). It continues until n = 2.
+The stack will look like this after a series of fib(n-1) calls:
 
 \______________/
 |  ret addr    |
@@ -75,20 +115,44 @@ Otherwise, it stores n on the stack and calls fib on (n-1). It continues until n
     ...
  ______________
 |  2           |
-|______________|
+|______________|<- stack pointer in fib_recurse(2)
 /              \
 
 As each stack frame is popped off the stack, the fib(n) of each stack frame is returned
-in r24. These are summed together so that f(n) = f(n-1) + f(n-2). 
+in r24. These are summed together so that f(n) = f(n-1) + f(n-2). In between the call to 
+fib(n-1) and fib(n-2), we pop the stored value of n off into r24 to use again and push
+the return value from fib(n-1) to the stack:
 
-We also save fib(n-1) in between recursive calls, so at some point the stack looks like:
 
 \______________/
 |  ret addr    |
+| of main      |
 |______________|
-|  n           |
+| ret value of |
+|  fib(n - 1)  |
+|______________|<- stack pointer in fib(n)
+/              \
+
+Then fib(n) calls fib(n-2):
+
+\______________/
+|  ret addr    |
+| of main      |
 |______________|
+| ret value of |
 |  fib(n - 1)  |
 |______________|
+| ret addr of  |
+| fib(n)       |
+|______________|<- stack pointer in fib(n-2)
+/              \
+
+After fib(n-2) returns to fib(n), fib(n) pops the stored value of fib(n-1) from the 
+stack and adds the returned values from fib(n-1) and fib(n-2). 
+
+\______________/
+|  ret addr    |
+|   of main    |
+|______________|<- stack pointer (in fib_recurse(n))
 /              \
 
