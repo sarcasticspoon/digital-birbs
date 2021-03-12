@@ -4,10 +4,11 @@ const int CLOCK_PIN = 11;
 const int BUTTON_PIN = 2;
 int digit = 0;
 volatile unsigned long last_time = 0;
-const unsigned long debounce_time = 5;
-int last_state = 1;
+const unsigned long debounce_time = 125;
 int last_stable = 1;
 bool interrupt_flag = false;
+int DELAY = 0;
+bool delay_flag = false;
 
 static char numbers[10][5] = {
   {0x3E, 0x51, 0x49, 0x45, 0x3E},// 0
@@ -41,31 +42,33 @@ void loop() {
     shiftOut(DATA_PIN, CLOCK_PIN, LSBFIRST, numbers[digit][i]);
     digitalWrite(LATCH_PIN, HIGH);
   }
-  if(interrupt_flag) {
+  if(interrupt_flag && !delay_flag) {        
     increment();
+    last_time = millis();
+    DELAY = 250;
+    delay_flag = true;
     interrupt_flag = false;
   }
+  if(DELAY > 0) {
+    DELAY--;
+  }
+  if(DELAY == 0 && delay_flag) {
+    delay_flag = false;
+  }
+  
 }
 
 void debounce_increment() {
   int value = digitalRead(BUTTON_PIN);
-  if(value != last_stable && last_stable == last_state) {
-    last_time = millis();
-    last_state = value;
-    return;
-  }
-
-  if(value != last_stable && value == last_state) {
+ 
+  if (value != last_stable) {
     if (millis() - last_time > debounce_time) {
-      interrupt_flag = true;
+        if(value == 0) {
+          interrupt_flag = true;
+        }
       last_stable = value;
     }
   }
-  //  volatile unsigned long curr = millis();
-//  if(curr - last_time > debounce_time) {
-//    interrupt_flag = true;
-//    last_time = curr;
-//  }
 }
 
 void increment() {
