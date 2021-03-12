@@ -1,4 +1,4 @@
-int DATA_PIN = 13;
+int DATA_PIN = 13; // the pins we use to drive the shift registers
 int LATCH_PIN = 12;
 int CLOCK_PIN = 11;
 
@@ -17,23 +17,21 @@ static char numbers[10][5] = {
 
 void setup() {
   // put your setup code here, to run once:
+// if using Arduino helper functions:
 //  pinMode(LATCH_PIN, OUTPUT);
 //  pinMode(DATA_PIN, OUTPUT);
 //  pinMode(CLOCK_PIN, OUTPUT);
   DDRB |= 0b111000;
-//  Serial.begin(9600);
 }
 
-void loop() {
+void loop() { // want to iteratively go through each column, and set the right cells in each row to light up.
   for (int j = 0; j < 10; j++) {
     for (int k = 0; k < 1000; k++) {
       for(int i = 0; i < 5; i++) {
-        PORTB &= 0b01111;
-//        digitalWrite(LATCH_PIN, LOW);
-        shiftOut(DATA_PIN, CLOCK_PIN, LSBFIRST, ~(1 << i));
-        shiftOut(DATA_PIN, CLOCK_PIN, LSBFIRST, numbers[j][i]);
-        PORTB |= 0b10000;
-//        digitalWrite(LATCH_PIN, HIGH);
+        PORTB &= 0b01111; // write Latch Pin LOW - digitalWrite(LATCH_PIN, LOW);
+        shiftOut(DATA_PIN, CLOCK_PIN, LSBFIRST, ~(1 << i)); //choose the column
+        shiftOut(DATA_PIN, CLOCK_PIN, LSBFIRST, numbers[j][i]); //choose the row
+        PORTB |= 0b10000; // write Latch Pin High - digitalWrite(LATCH_PIN, HIGH); 
       }
     }
   }

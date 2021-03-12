@@ -4,7 +4,7 @@ const int CLOCK_PIN = 11;
 const int BUTTON_PIN = 2;
 int digit = 0;
 volatile unsigned long last_time = 0;
-const unsigned long debounce_time = 125;
+const unsigned long debounce_time = 125; //define debounce time here
 int last_stable = 1;
 bool interrupt_flag = false;
 int DELAY = 0;
@@ -31,40 +31,40 @@ void setup() {
   DDRB |= 0b111000; // set latch pin, data pin, clock pin to output
   DDRD &= ~(1<< BUTTON_PIN); // set pd2 to input for button
   PORTD |= (1<< BUTTON_PIN); // set passive pullup
-  attachInterrupt(digitalPinToInterrupt(BUTTON_PIN), debounce_increment, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(BUTTON_PIN), debounce_increment, CHANGE); //attach our interrupt handler
 }
 
 void loop() {
   // scan through columns to show number specified by global var digit
   for(int i = 0; i < 5; i++) {
     digitalWrite(LATCH_PIN, LOW);
-    shiftOut(DATA_PIN, CLOCK_PIN, LSBFIRST, ~(1 << i));
-    shiftOut(DATA_PIN, CLOCK_PIN, LSBFIRST, numbers[digit][i]);
+    shiftOut(DATA_PIN, CLOCK_PIN, LSBFIRST, ~(1 << i)); // select each column
+    shiftOut(DATA_PIN, CLOCK_PIN, LSBFIRST, numbers[digit][i]); //select each row to display
     digitalWrite(LATCH_PIN, HIGH);
   }
-  if(interrupt_flag && !delay_flag) {        
+  if(interrupt_flag && !delay_flag) {         // this code increments the global counter after the interrupt flag is set.
     increment();
     last_time = millis();
     DELAY = 250;
     delay_flag = true;
     interrupt_flag = false;
   }
-  if(DELAY > 0) {
+  if(DELAY > 0) { 
     DELAY--;
   }
-  if(DELAY == 0 && delay_flag) {
+  if(DELAY == 0 && delay_flag) { // an artificial delay is induced to make debouncing more robust
     delay_flag = false;
   }
   
 }
 
-void debounce_increment() {
+void debounce_increment() { //this is our code to handle the interrupt and also debounce.
   int value = digitalRead(BUTTON_PIN);
  
   if (value != last_stable) {
-    if (millis() - last_time > debounce_time) {
+    if (millis() - last_time > debounce_time) { // last time will have been set only when interrupt is handled, so this guarantees that the first change will be detected, but not subsequent changes.
         if(value == 0) {
-          interrupt_flag = true;
+          interrupt_flag = true; // only set the flag if the button is depressed
         }
       last_stable = value;
     }
@@ -72,5 +72,5 @@ void debounce_increment() {
 }
 
 void increment() {
-  digit = (digit + 1) % 10;
+  digit = (digit + 1) % 10; // ensures the range of the digit will be between 0 - 9
 }
