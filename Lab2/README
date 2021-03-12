@@ -1,1 +1,5 @@
-https://www.deviceplus.com/arduino/the-basics-of-arduino-reading-switch-states/
+Part 1: we implemented a simple circuit connecting the pushbutton to GND and PD2 on the Arduino Uno. We enabled the passive pullup so that we didn't need to use a resistor in the circuit. The program polls the state of the button and updates the state if the button has remained in a stable state different from the last stored state for a time longer than the debounce delay.
+
+Part 2: we daisy-chained 2 shift registers together and used these to control the columns and rows of the LED matrix, scanning by column to create the illusion of a persistent display for the numbers. 
+
+Part 3: we implemented interrupts by the pushbutton to increment the number being displayed on the LED matrix by linking an interrupt handler to pin 2 (the pushbutton) and keeping a global variable.
