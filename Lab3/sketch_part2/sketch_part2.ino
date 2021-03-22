@@ -1,7 +1,7 @@
 #define trigger_pin 13
 #define echo_pin 12
-#define red_pin 11
-#define green_pin 10
+#define red_pin 10
+#define green_pin 11
 #define pc_pin 0
 int pc_reading;
 int red_value, green_value;
@@ -46,7 +46,7 @@ void loop() {
   max_brightness = map(pc_reading, 0, 1023, 0, 255);
   
   // split sum brightness between red channel and green channel
-  red_value = map(distance, 0, 50, 0, max_brightness);
+  red_value = map(distance, 0, 100, 0, max_brightness);
   green_value = max_brightness - red_value;
   // set the red and green channels on LED
   analogWrite(red_pin, red_value);
