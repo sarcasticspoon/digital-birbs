@@ -1,3 +1,46 @@
+Part 1:
+
+Normal Interaction:
+    While printing the mapped value of the voltage converted to an integer between 0-255:
+    Test1) Use a cup to shield the photocell from light, the average value should decrease.
+    Test2) Expose the photocell to more light from a flashlight, the average value should increase.
+
+Non-standard Interaction:
+    While printing the mpapped value of the voltage converted to an integer between 0-255:
+    Test1) Use a strobelight to simulate a rapidly changing light environment, ideally the printed value should also fluctuate, but in some instances the photocell was too slow to respond to the change.
+    Test2) Oversaturate the photocell with very bright light, aka direct sunlight, the value should not exceed 255.
+
 Part 2:
 
+Note: tests for the photocell are as above.
+
+Normal Interaction:
+    While printing the distance converted to an integer between 0-255:
+    Test1) Use a book or some solid object and begin from about 4m away from the range finder. Slowly move the object closer to the sensor. The LED should change from red to green. The printed value should also decrease.
+    Test2) Use a book or some solid object and begin right in front of the range finder. Slowly move the object further from the sensor. The LED should change from green to red. The printed value should also increase.
+    Test3) Insert a book or some solid object at random time intervals very closely to the sensor The LED should be green whenever the object is in front of the sensor, and red otherwise. The printed value should also fluctuate.
+
+Non-standard Interaction:
+    While printing the distance converted to an integer between 0-255:
+    Test1) Repeat above, except using a soft object like tissue paper or cloth that might absorb some of the ultrasonic waves. 
+    Test2) We also created another version of the code where the distance would mix red and green inbetween - resulting in a yellow LED, when the distance is midway between the maximum and minimum expected distance. 
+    Test3) Repeat Test3, except increase the frequency of inserting the object. The LED should exhibit the same behaviour -- it should flicker, but at some moments we do notice it stuttering.
+
+
 Part 3:
+
+Normal Interaction:
+    While printing the value of counter between 0-255, and the vector of the ball:
+    Test0) Turning the rotary encoder clockwise increases the counter, and counterclockwise decreases the counter, with minimal stuttering (i.e. registering turns in the opposite direction. With our debouncing code, we managed to reduce this error to 1/10). Counter should be bounded by 0 and 255.
+    Test1) When counter is set to 128, the ball on the screen should be stationery.
+    Test2) When counter is not equal to 128, the ball should be moving.
+    Test3) When the counter moves from 129 to 127, the vector of the moving ball should be reversed. 
+    Test4) For counter values above 128, higher values make the ball go faster. For counter values below 128, lower values make the ball go faster.
+    Test5) The entire ball should always be visible on screen.
+    Test6) The vector of the ball should be randomized whenever it "hits" the edge of the screen.
+
+Non-standard Interaction:
+    While printing the value of counter between 0-255, and the vector of the ball:
+    Test1) Turn the rotary encoder very quickly (this is difficult to do), the counter should change in a stable fashion.
+    Test2) Turn the rotary encoder back and forth very quickly, the counter should also increase and decrease correspondingly.
+    Test3) Turn the rotary encoder a fractional step (less than 1/12 of a full rotation), the counter should not change.
