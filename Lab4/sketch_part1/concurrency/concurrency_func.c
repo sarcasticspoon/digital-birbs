@@ -54,7 +54,7 @@ int process_create (void (*f)(void), int n) {
         return -1;
     }
     if((sp = process_init (f, n)) == 0) {
-        return -1
+        return -1;
     };
     proc->sp = sp;
     proc->next = head;
