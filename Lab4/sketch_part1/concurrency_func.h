@@ -64,5 +64,5 @@ void yield ();
 }
 #endif
 
-#endif /* __CONCURRENCY_H__ */
+#endif /* __CONCURRENCY_FUNC_H__ */
 
