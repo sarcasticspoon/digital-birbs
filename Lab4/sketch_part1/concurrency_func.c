@@ -22,18 +22,21 @@ __attribute__((used)) unsigned int process_select (unsigned int cursp)
         end = end->next;
     } // OR just use tail
 
+    /* save the cursp into the current process */
+    current_process->sp = cursp;
+
     /* add the current process to the back of the queue */
-    // assume here that current_process->sp == cursp. 
+    // assume here that current_process->sp == cursp. OK need to save the other sp.
     end->next = current_process;
 
     /* set current_process to next ready process */
     current_process = head;
 
-    /* NULL out current process' next variable */
-    current_process->next = NULL;
-
     /* advance the queue */
     head = head->next;
+
+    /* NULL out current process' next variable */
+    current_process->next = NULL;
 
     /* grab return value if any */ 
     return current_process->sp;
@@ -41,7 +44,7 @@ __attribute__((used)) unsigned int process_select (unsigned int cursp)
 
 /* Starts up the concurrent execution */
 void process_start (void) {
-    current_process = NULL;
+    current_process = malloc(sizeof(process_t));
     process_begin();
 };
 
