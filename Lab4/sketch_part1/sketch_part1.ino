@@ -10,7 +10,7 @@
 
 void p1(){
   for(int i = 0; i < 100; i++){
-    delay(10);
+    delay(1);
     Serial.print("P1:");
     Serial.println(i);
   }
@@ -19,17 +19,17 @@ void p1(){
 
 void p2(){
   for(int i = 0; i < 100; i++){
-    delay(10);
+    delay(1);
     Serial.print("P2:");
     Serial.println(i);
   }
   return;
 }
-
-void TimerHandler1(){
-  Serial.println("context switch");
+//
+//void TimerHandler1(){
+//  Serial.println("context switch");
 //  yield();
-}
+//}
 
 void setup() {
   Serial.begin(9600);
@@ -39,12 +39,12 @@ void setup() {
   if(process_create(p2, 64) < 0) {
     return;
   }
-  ITimer1.init();
-  if(ITimer1.attachInterruptInterval(TIMER1_INTERVAL_MS, TimerHandler1)) {
-    Serial.println("attach successful");
-  } else {
-    Serial.println("attach not successful");
-  }
+//  ITimer1.init();
+//  if(ITimer1.attachInterruptInterval(TIMER1_INTERVAL_MS, TimerHandler1)) {
+//    Serial.println("attach successful");
+//  } else {
+//    Serial.println("attach not successful");
+//  }
 }
 
 void loop() {

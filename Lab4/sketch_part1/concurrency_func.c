@@ -7,7 +7,7 @@
    "cursp" = the stack pointer for the currently running process
 */
 
-/*
+
 __attribute__((used)) unsigned int process_select (unsigned int cursp)
 {
     // if no ready processes, continue with current process
@@ -51,7 +51,7 @@ __attribute__((used)) unsigned int process_select (unsigned int cursp)
     return current_process->sp;
 }
 
-*/
+
 
 /* Starts up the concurrent execution */
 void process_start (void) {
@@ -79,7 +79,7 @@ int process_create (void (*f)(void), int n) {
 }
 
 
-
+/*
 __attribute__((used)) unsigned int process_select (unsigned int cursp)
 {
 
@@ -118,4 +118,4 @@ __attribute__((used)) unsigned int process_select (unsigned int cursp)
 
     return current_process->sp;
 }
-
+*/
