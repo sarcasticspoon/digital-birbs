@@ -1,4 +1,4 @@
-#define TIMER1_INTERVAL_MS 50L
+#define TIMER1_INTERVAL_MS 100L
 #define USE_TIMER_1 true
 #define USE_TIMER_2 false
 #define USE_TIMER_3 false
@@ -28,7 +28,7 @@ void p2(){
 
 void TimerHandler1(){
   Serial.println("context switch");
-  yield();
+//  yield();
 }
 
 void setup() {
@@ -49,5 +49,8 @@ void setup() {
 
 void loop() {
   process_start();
-  while(1);
+  while(1) {
+    Serial.println("spinning");
+    delay(10);
+  }
 }
