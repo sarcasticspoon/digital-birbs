@@ -8,7 +8,7 @@
 #ifndef __CONCURRENCY_FUNC_H__
 #define __CONCURRENCY_FUNC_H__
 
-#include #include "../concurrency/concurrency.h"
+#include "concurrency.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -22,10 +22,10 @@ extern "C" {
 
 /* ====== Part 1 ====== */
 
-extern process_t *current_process; 
+process_t *current_process; 
 /* the currently running process */
 
-extern process_t *head;
+process_t *head;
 /* the head of the ready queue */
 
 // extern process_t *tail;
@@ -56,13 +56,12 @@ void lock_release (lock_t *l);
 
 /*-- functions provided in the .c file --*/
 
-unsigned int process_init (void (*f) (void), int n);
-void process_begin ();
-void yield ();
+//unsigned int process_init (void (*f) (void), int n);
+//void process_begin ();
+//void yield ();
 
 #ifdef __cplusplus
 }
 #endif
 
 #endif /* __CONCURRENCY_FUNC_H__ */
-

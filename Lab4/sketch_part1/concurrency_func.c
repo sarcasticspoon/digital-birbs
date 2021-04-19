@@ -9,11 +9,11 @@
 __attribute__((used)) unsigned int process_select (unsigned int cursp)
 {
     if (cursp == 0) {
-            current_process = NULL;
-        }
+      current_process = NULL;
+    }
 
     if (!head) {
-        return cursp;         
+      return cursp;         
     }
 
     /* find the end of the process queue*/ 
