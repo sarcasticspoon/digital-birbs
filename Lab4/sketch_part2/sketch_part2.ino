@@ -8,11 +8,24 @@
 #include "TimerInterrupt.h"
 #include "concurrency_func.h"
 
+lock_t *serial_lock;
+
+
 void p1(){
-  for(int i = 0; i < 100; i++){
+  lock_acquire(serial_lock);
+  for(int i = 0; i < 50; i++){
     delay(1);
     Serial.print("P1:");
     Serial.println(i);
+  }
+  lock_release(serial_lock);
+
+  for(int i = 51; i < 100; i++){
+    delay(1);
+    lock_acquire(serial_lock);
+    Serial.print("P1:");
+    Serial.println(i);
+    lock_release(serial_lock);
   }
   return;
 }
@@ -20,8 +33,10 @@ void p1(){
 void p2(){
   for(int i = 0; i < 100; i++){
     delay(2);
+    lock_acquire(serial_lock);
     Serial.print("P2:");
     Serial.println(i);
+    lock_release(serial_lock);
   }
   return;
 }
@@ -39,10 +54,8 @@ void setup() {
   if(process_create(p2, 64) < 0) {
     return;
   }
-
-  lock_t *serial_lock;
+  
   lock_init(serial_lock);
-
   
 //  ITimer1.init();
 //  if(ITimer1.attachInterruptInterval(TIMER1_INTERVAL_MS, TimerHandler1)) {
@@ -55,7 +68,9 @@ void setup() {
 void loop() {
   process_start();
   while(1) {
+    lock_acquire(serial_lock);
     Serial.println("spinning");
-    delay(10);
+    lock_release(serial_lock);
+    delay(1000);
   }
 }
