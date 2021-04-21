@@ -9,6 +9,7 @@
 #define __CONCURRENCY_FUNC_H__
 
 #include "concurrency.h"
+#include <stdbool.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -46,7 +47,9 @@ int process_create (void (*f)(void), int n);
 
 /* ===== Part 2 ====== */
 
-typedef struct lock_state lock_t;
+typedef struct lock_state{
+    bool lock;
+} lock_t;
   /* you have to define the lock_state structure */
 
 void lock_init (lock_t *l);

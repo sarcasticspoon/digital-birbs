@@ -48,14 +48,14 @@ int process_create (void (*f)(void), int n);
 
 /* ===== Part 2 ====== */
 
-typedef struct lock_state {
-   unsigned int lock; /* stack pointer */
-} lock_t;
-  /* you have to define the lock_state structure */
+// typedef struct lock_state {
+//    unsigned char lock; /* stack pointer */
+// } lock_t;
+//   /* you have to define the lock_state structure */
 
-void lock_init (lock_t *l);
-void lock_acquire (lock_t *l);
-void lock_release (lock_t *l);
+// void lock_init (lock_t *l);
+// void lock_acquire (lock_t *l);
+// void lock_release (lock_t *l);
 
 
 /*-- functions provided in the .c file --*/

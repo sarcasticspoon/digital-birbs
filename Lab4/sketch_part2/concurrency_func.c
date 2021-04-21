@@ -80,25 +80,26 @@ int process_create (void (*f)(void), int n) {
 
 void lock_init (lock_t *l) {
   asm volatile("cli\n\t");
-  l = malloc(sizeof(lock_t));
-  l->lock = 0;
+  // l = (lock_t*) malloc(sizeof(lock_t));
+  l->lock = false; 
   asm volatile("sei\n\t");
+  return;
 }
 
 void lock_acquire (lock_t *l){
   asm volatile("cli\n\t");
-  while (l->lock == 1) {
+  while (l->lock) {
     yield();
   }
 
-  l->lock = 1;
+  l->lock = true;
   asm volatile("sei\n\t");
 }
 
 
 void lock_release (lock_t *l){
   asm volatile("cli\n\t");
-  l->lock = 0;
+  l->lock = false;
   asm volatile("sei\n\t");
 }
 

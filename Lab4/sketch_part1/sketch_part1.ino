@@ -39,10 +39,6 @@ void setup() {
   if(process_create(p2, 64) < 0) {
     return;
   }
-
-  lock_t *serial_lock;
-  lock_init(serial_lock);
-
   
 //  ITimer1.init();
 //  if(ITimer1.attachInterruptInterval(TIMER1_INTERVAL_MS, TimerHandler1)) {
