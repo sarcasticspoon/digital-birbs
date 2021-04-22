@@ -1,6 +1,7 @@
 #define LED1 10
 #define LED2 11
 
+#include "concurrency_func.h"
 /*
  * P1 - P4 each prints the process name and the loop iteration 
  * after a different delay for a different number of iterations
@@ -166,7 +167,7 @@ int test5_setup(){
  */
 void setup() {
   Serial.begin(9600);
-  if(test1_setup() < 0) {
+  if(test2_setup() < 0) {
     return;
   }
 }
@@ -177,3 +178,4 @@ void loop() {
     Serial.println("spinning");
     delay(10);
   }
+}

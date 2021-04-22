@@ -1,6 +1,44 @@
 #include "concurrency_func.h"
+#define blue_pin 11
+#define red_pin 10
 
 lock_t *serial_lock;
+
+void blue(){
+  for(int i = 0; i < 50; i++){
+    lock_acquire(serial_lock);
+    analogWrite(blue_pin, 255);
+    delay(100);
+    analogWrite(blue_pin, 0);
+    delay(50);
+    lock_release(serial_lock);
+  }
+  return;
+}
+
+void red(){
+  for(int i = 0; i < 50; i++){
+    lock_acquire(serial_lock);
+    analogWrite(red_pin, 255);
+    delay(100);
+    analogWrite(red_pin, 0);
+    delay(50);
+    lock_release(serial_lock);
+  }
+  return;
+}
+
+void testlight_setup() {
+  Serial.begin(9600);
+  if(process_create(blue, 64) < 0) {
+    return;
+  }
+  if(process_create(red, 64) < 0) {
+    return;
+  }
+  pinMode(blue_pin, OUTPUT);
+  pinMode(red_pin, OUTPUT);
+}
 
 void p2(){
   lock_acquire(serial_lock);

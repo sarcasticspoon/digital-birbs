@@ -1,4 +1,4 @@
-#include <stdio.h>
+include <stdio.h>
 #include <stdlib.h>
 #include <avr/io.h>
 #include "concurrency_func.h"
@@ -90,7 +90,7 @@ int process_create (void (*f)(void), int n) {
     if((sp = process_init (f, n)) == 0) {
         return -1;
     };
-    // initializa values for process, add to head of linked list
+    // initialize values for process, add to head of linked list
     proc->sp = sp;
     proc->next = head;
     head = proc;
