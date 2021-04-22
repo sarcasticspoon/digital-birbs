@@ -1,13 +1,3 @@
-#define TIMER1_INTERVAL_MS 100L
-#define USE_TIMER_1 true
-#define USE_TIMER_2 false
-#define USE_TIMER_3 false
-#define USE_TIMER_4 false
-#define USE_TIMER_5 false
-
-#include "TimerInterrupt.h"
-#include "concurrency_func.h"
-
 #define LED1 10
 #define LED2 11
 
@@ -150,4 +140,3 @@ void loop() {
     Serial.println("spinning");
     delay(10);
   }
-}
