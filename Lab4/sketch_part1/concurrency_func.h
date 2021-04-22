@@ -28,9 +28,6 @@ process_t *current_process;
 process_t *head;
 /* the head of the ready queue */
 
-// extern process_t *tail;
-/* the end of the ready queue */
-
 __attribute__((used)) unsigned int process_select (unsigned int cursp);
 /* Called by the runtime system to select another process.
    "cursp" = the stack pointer for the currently running process
@@ -41,7 +38,6 @@ void process_start (void);
 
 int process_create (void (*f)(void), int n);
 /* Create a new process */
-
 
 
 /* ===== Part 2 ====== */
@@ -55,7 +51,6 @@ void lock_release (lock_t *l);
 
 
 /*-- functions provided in the .c file --*/
-
 //unsigned int process_init (void (*f) (void), int n);
 //void process_begin ();
 //void yield ();

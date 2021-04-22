@@ -7,30 +7,43 @@
    "cursp" = the stack pointer for the currently running process
 */
 
-
+/*
+ * process_select takes the current stack pointer as an argument
+ * it returns the stack pointer for the next process to run 
+ * 
+ * the process first checks to see if there are any processes on the ready queue
+ * if not, it returns the current stack pointer without changing the current_process
+ * 
+ * if the current stack pointer is 0, meaning there is no current running process
+ * the function pops the first process of the head of the stack off and saves it as the current_process
+ * it increments the ready queue, and returns the previous head's stack pointer
+ */
 __attribute__((used)) unsigned int process_select (unsigned int cursp)
 {
-    // if no ready processes, continue with current process
+    // if no ready processes, continue with current process, return current sp
     if (!head) {
       return cursp;         
     }
 
-    //if no current process, don't add anything to queue 
+    //if no current process, don't add anything to queue, just pop off head for current process
     if (cursp == 0) {
+      // set current_process to head of queue
         current_process = head;
       // advance the queue
         head = head->next;
       // NULL out current process' next variable 
         current_process->next = NULL;
+      // return current process' sp
         return current_process->sp;
       //dont add current process to the back of the queue.
     }
 
+    // else if queue is not empty and there is a current process
     // find the end of the process queue
     process_t *end = head;
     while (end->next) {
         end = end->next;
-    } // OR just use tail
+    }
 
     // save the cursp into the current process
     current_process->sp = cursp;
@@ -47,75 +60,41 @@ __attribute__((used)) unsigned int process_select (unsigned int cursp)
     // NULL out current process' next variable
     current_process->next = NULL;
 
-    // grab return value if any
+    // return current_process' sp
     return current_process->sp;
 }
 
-
-
-/* Starts up the concurrent execution */
+/* process_start starts up the concurrent execution */
 void process_start (void) {
+  // intialize the current_process variable
     current_process = NULL;
     process_begin();
 };
 
 
-/* Create a new process */
+/* 
+ *  process_create creates a new process_t, 
+ *  reserves space for the process' stack, 
+ *  and adds the process_t to the ready queue
+*/
 int process_create (void (*f)(void), int n) {
+    // disable interrupts
     asm volatile("cli\n\t");
     unsigned int sp;
+    // malloc space for the process to go into the ready queue
     process_t * proc = malloc(sizeof(process_t));
     if(!proc) {
         return -1;
     }
+    // call process_init to set up the stack for this proccess
     if((sp = process_init (f, n)) == 0) {
         return -1;
     };
+    // initializa values for process, add to head of linked list
     proc->sp = sp;
     proc->next = head;
     head = proc;
+    // enable interrupts again
     asm volatile("sei\n\t");
     return 0;
 }
-
-
-/*
-__attribute__((used)) unsigned int process_select (unsigned int cursp)
-{
-
-    // if no ready processes, continue with current process
-    if (!head) {
-      return cursp;         
-    }
-
-    process_t* next = head;
-    // if no current process, don't add anything to queue
-    if (cursp == 0) {
-      current_process->sp = head->sp;
-      head = head->next;
-      free(next);
-      //dont add current process to the back of the queue.
-    } else {
-        //swap sp
-        current_process->sp = head->sp;
-        head->sp = cursp;
-
-        //push original head back to the end of the queue
-    
-        //advance the head pointer down the queue
-        head = head->next;
-
-        // find the end of the process queue
-        process_t *end = head;
-        while (end->next) {
-            end = end->next;
-        }
-
-        //assign head to the back of the list, and kill its original next pointer.
-        end->next = next;
-        next->next = NULL;
-    }
-
-    return current_process->sp;
-}
-*/
