@@ -71,10 +71,7 @@ int process_create (void (*f)(void), int n) {
     if((sp = process_init (f, n)) == 0) {
         return -1;
     };
-    proc->sp = sp;
-    proc->next = head;
-    head = proc;
-    asm volatile("sei\n\t");
+    proc->s e("sei\n\t");
     return 0;
 }
 
