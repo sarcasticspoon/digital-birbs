@@ -9,7 +9,8 @@ extern "C" {
 
 typedef struct cond_state {
   process_t* head;
-} cont_t;
+  lock_t* lock;
+} cond_t;
 
 void cond_init (lock_t *m, cond_t *c);
 void cond_wait (lock_t *m, cond_t *c);
