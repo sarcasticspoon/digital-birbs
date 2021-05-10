@@ -162,12 +162,32 @@ int test5_setup(){
 }
 
 /*
+ * here we test 2 concurrent processes with different delays
+ * P2 has a delay of 2 ms, loops 100 times
+ * P3 has a delay of 4 ms, loops 50 times
+ * we expect to see P2 to print twice as many lines as P3 in a time slice
+ * ex: P2:1 P2:2 P2:3 P2:4 P3:1 P3:2 P2:5 ...
+ * both should interleave the entire time and terminate at around the same time
+ * after both have terminated, the main process will print 'spinning'
+ */
+int test6_setup(){
+  Serial.println("Testing 2 processes with different delays. P2 P3");
+  if(process_create_prio(p2, 64, 127) < 0) {
+    return -1;
+  }
+  if(process_create(p3, 64) < 0) {
+    return -1;
+  }
+  return 0;
+}
+
+/*
  * call the appropriate test setup function inside the setup function
  * to see different test cases
  */
 void setup() {
   Serial.begin(9600);
-  if(test2_setup() < 0) {
+  if(test6_setup() < 0) {
     return;
   }
 }
@@ -176,6 +196,6 @@ void loop() {
   process_start();
   while(1) {
     Serial.println("spinning");
-    delay(10);
+    delay(1000);
   }
 }

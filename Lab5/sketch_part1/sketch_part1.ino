@@ -30,6 +30,9 @@ void p3(){
     Serial.print("P3:");
     Serial.println(i);
   }
+  if(process_create(p1, 64) < 0) {
+    return;
+  }
   return;
 }
 
@@ -92,9 +95,11 @@ int test1_setup() {
 int test2_setup(){
   Serial.println("Testing 2 processes with different delays. P2 P3");
   if(process_create(p2, 64) < 0) {
+    Serial.println("p2 fail");
     return -1;
   }
   if(process_create(p3, 64) < 0) {
+    Serial.println("p3 fail");
     return -1;
   }
   return 0;
@@ -176,6 +181,6 @@ void loop() {
   process_start();
   while(1) {
     Serial.println("spinning");
-    delay(10);
+    delay(1000);
   }
 }

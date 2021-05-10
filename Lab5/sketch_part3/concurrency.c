@@ -52,18 +52,18 @@ __attribute__((used)) void process_terminated ()
 		"sts _n_hi, r0\n\t"
 		"pop r0\n\t"
 		"sts _n_lo, r0\n\t"
-		"in __SP_H__, r25\n\t"
+		"in r25, __SP_H__\n\t"
 		"sts _free_sp_hi, r25\n\t"
-		"in __SP_L__, r24\n\t"
+		"in r24, __SP_L__\n\t"
 		"sts _free_sp_lo, r24\n\t"
   );
 
-  unsigned char* stack_addr = _free_sp_hi << 8 + _free_sp_lo;
-  unsigned char* n = _n_hi << 8 + _n_lo;
-  unsigned char* base_addr = stack_addr - n;
-  free(base_addr);
+  uintptr_t stack_addr = _free_sp_hi << 8 + _free_sp_lo;
+  uintptr_t n = _n_hi << 8 + _n_lo;
+  uintptr_t base_addr = stack_addr - n;
+  free((unsigned char*)base_addr);
   free(current_process);
-
+  
   asm volatile (
 		"lds r25, _orig_sp_hi\n\t"
 		"out __SP_H__, r25\n\t"
@@ -176,9 +176,9 @@ __attribute__((used)) void process_timer_interrupt()
 
 
 /*
- * Stack: save 32 regs, +2 for entry point +2 for ret address
+ * Stack: save 32 regs, +2 for entry point +2 for ret address, +2 for stack size
  */
-#define EXTRA_SPACE 37
+#define EXTRA_SPACE 39
 #define EXTRA_PAD 4
 
 unsigned int process_init (void (*f) (void), int n)

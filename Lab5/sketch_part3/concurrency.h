@@ -16,6 +16,7 @@ extern "C" {
 typedef struct process_state {
    unsigned int sp; /* stack pointer */
    struct process_state *next; /* link to next process */
+   unsigned char prio;
 } process_t;
    /* opaque definition of process type; you must provide this
       implementation.

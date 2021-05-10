@@ -37,8 +37,10 @@ void process_start (void);
 /* Starts up the concurrent execution */
 
 int process_create (void (*f)(void), int n);
-/* Create a new process */
+/* Create a new process with default priority */
 
+int process_create_prio (void (*f)(void), int n, unsigned char prio);
+/* Create a new process with user selected priority*/
 
 /* ===== Part 2 ====== */
 

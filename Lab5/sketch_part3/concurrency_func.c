@@ -37,19 +37,28 @@ __attribute__((used)) unsigned int process_select (unsigned int cursp)
         return current_process->sp;
       //dont add current process to the back of the queue.
     }
+    
+    //if next processes priority is lower than current process, do nothing
+    if(head->prio > current_process->prio) {
+        return current_process->sp;
+    }
 
     // else if queue is not empty and there is a current process
-    // find the end of the process queue
-    process_t *end = head;
-    while (end->next) {
-        end = end->next;
+    // find the last element of the matching priority
+    unsigned char curr_prio = current_process->prio;
+    process_t *last_of_prio = head;
+    while (last_of_prio->next) {
+        if (last_of_prio->next->prio > curr_prio) break;
+        last_of_prio = last_of_prio->next;
     }
 
     // save the cursp into the current process
     current_process->sp = cursp;
 
-    // add the current process to the back of the queue
-    end->next = current_process;
+    // add the current process to the middle of the queue after the last process of matching priority
+    process_t *tmp = last_of_prio->next;
+    last_of_prio->next = current_process;
+    last_of_prio->next->next = tmp;
 
     // set current_process to next ready process
     current_process = head;
@@ -83,6 +92,8 @@ int process_create (void (*f)(void), int n) {
     unsigned int sp;
     // malloc space for the process to go into the ready queue
     process_t * proc = process_malloc(sizeof(process_t));
+    //set default priority
+    proc->prio = 128;
     if(!proc) {
         return -1;
     }
@@ -96,11 +107,60 @@ int process_create (void (*f)(void), int n) {
     if(!head) {
       head = proc; 
     } else {
-      process_t *tail = head;
-      while (tail->next) {
-          tail = tail->next;
+      process_t *last_of_prio = head;
+      while (last_of_prio->next) {
+        if (last_of_prio->next->prio > 128) break;
+        last_of_prio = last_of_prio->next;
       }
-      tail->next = proc;
+
+      // add the current process to the middle of the queue after the last process of matching priority
+      process_t *tmp = last_of_prio->next;
+      last_of_prio->next = proc;
+      last_of_prio->next->next = tmp;
+    }
+    // enable interrupts again
+    asm volatile("sei\n\t");
+    return 0;
+}
+
+/* 
+ *  process_create creates a new process_t, 
+ *  reserves space for the process' stack, 
+ *  and adds the process_t to the ready queue
+ *  priority is also passed into the function
+*/
+int process_create_prio (void (*f)(void), int n, unsigned char prio) {
+    // disable interrupts
+    asm volatile("cli\n\t");
+    unsigned int sp;
+    // malloc space for the process to go into the ready queue
+    process_t * proc = process_malloc(sizeof(process_t));
+    //set user selected priority
+    proc->prio = prio;
+    if(!proc) {
+        return -1;
+    }
+    // call process_init to set up the stack for this proccess
+    if((sp = process_init (f, n)) == 0) {
+        return -1;
+    };
+    // initialize values for process, add to tail of linked list
+    proc->sp = sp;
+    proc->sp = sp;
+    proc->next = NULL;
+    if(!head) {
+      head = proc; 
+    } else {
+      process_t *last_of_prio = head;
+      while (last_of_prio->next) {
+        if (last_of_prio->next->prio > prio) break;
+        last_of_prio = last_of_prio->next;
+      }
+
+      // add the current process to the middle of the queue after the last process of matching priority
+      process_t *tmp = last_of_prio->next;
+      last_of_prio->next = proc;
+      last_of_prio->next->next = tmp;
     }
     // enable interrupts again
     asm volatile("sei\n\t");
