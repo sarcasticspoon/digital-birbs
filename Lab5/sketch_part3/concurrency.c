@@ -63,7 +63,7 @@ __attribute__((used)) void process_terminated ()
   uintptr_t base_addr = stack_addr - n;
   free((unsigned char*)base_addr);
   free(current_process);
-
+  
   asm volatile (
 		"lds r25, _orig_sp_hi\n\t"
 		"out __SP_H__, r25\n\t"
@@ -176,7 +176,7 @@ __attribute__((used)) void process_timer_interrupt()
 
 
 /*
- * Stack: save 32 regs, +2 for entry point +2 for ret address, +2 for size of stack
+ * Stack: save 32 regs, +2 for entry point +2 for ret address, +2 for stack size
  */
 #define EXTRA_SPACE 39
 #define EXTRA_PAD 4
