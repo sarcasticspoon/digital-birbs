@@ -40,6 +40,7 @@ __attribute__((used)) unsigned int process_select (unsigned int cursp)
     
     //if next processes priority is lower than current process, do nothing
     if(head->prio > current_process->prio) {
+        current_process->sp = cursp;
         return current_process->sp;
     }
 
