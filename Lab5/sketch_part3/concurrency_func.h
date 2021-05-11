@@ -42,6 +42,9 @@ int process_create (void (*f)(void), int n);
 int process_create_prio (void (*f)(void), int n, unsigned char prio);
 /* Create a new process with user selected priority*/
 
+int process_create_rtjob (void (*f)(void), int n, unsigned int wcet, unsigned int deadline);
+/* Create a new process with realtime constraints */
+
 /* ===== Part 2 ====== */
 
 typedef struct lock_state lock_t;

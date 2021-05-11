@@ -105,6 +105,10 @@ int process_create (void (*f)(void), int n) {
     // initialize values for process, add to tail of linked list
     proc->sp = sp;
     proc->next = NULL;
+    // default values for real time
+    proc->start = NULL;
+    proc->deadline = NULL;
+    proc->wcet = 0;
     if(!head) {
       head = proc; 
     } else {
@@ -136,8 +140,6 @@ int process_create_prio (void (*f)(void), int n, unsigned char prio) {
     unsigned int sp;
     // malloc space for the process to go into the ready queue
     process_t * proc = process_malloc(sizeof(process_t));
-    //set user selected priority
-    proc->prio = prio;
     if(!proc) {
         return -1;
     }
@@ -145,10 +147,17 @@ int process_create_prio (void (*f)(void), int n, unsigned char prio) {
     if((sp = process_init (f, n)) == 0) {
         return -1;
     };
+    //set user selected priority
+    proc->prio = prio;
     // initialize values for process, add to tail of linked list
     proc->sp = sp;
+    // why do we need to of these? TODO
     proc->sp = sp;
     proc->next = NULL;
+    // default for real time
+    proc->start = NULL;
+    proc->deadline = NULL;
+    proc->wcet = 0;
     if(!head) {
       head = proc; 
     } else {
@@ -166,4 +175,31 @@ int process_create_prio (void (*f)(void), int n, unsigned char prio) {
     // enable interrupts again
     asm volatile("sei\n\t");
     return 0;
+}
+
+int process_create_rtjob (void (*f)(void), int n, unsigned int wcet, unsigned int deadline) {
+  // disable interrupts
+  asm volatile("cli\n\t");
+  // allocate space for process_t
+  unsigned int sp;
+  process_t * proc = process_malloc(sizeof(process_t));
+  if(!proc) {
+      return -1;
+  }
+  // call process_init to set up the stack for this proccess
+  if((sp = process_init(f, n)) == 0) {
+      return -1;
+  };
+  proc->sp = sp;
+  proc->prio = 255;
+  proc->next = NULL;
+  proc->deadline = ((double) clock()) / CLOCKS_PER_SEC * 1000 + deadline; // convert to milliseconds
+  proc->wcet = wcet;
+
+  // check to see if schedule is feasible
+  
+  // if it is, we need some way to set the start of the process
+
+  // enable interrupts 
+  asm volatile("sei\n\t");
 }

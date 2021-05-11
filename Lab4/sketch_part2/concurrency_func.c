@@ -6,8 +6,6 @@
 /* Called by the runtime system to select another process.
    "cursp" = the stack pointer for the currently running process
 */
-
-
 __attribute__((used)) unsigned int process_select (unsigned int cursp)
 {
     // if no ready processes, continue with current process
@@ -16,7 +14,7 @@ __attribute__((used)) unsigned int process_select (unsigned int cursp)
     }
 
     //if no current process, don't add anything to queue 
-    if (cursp == 0 || current_process->is_waiting) {
+    if (cursp == 0) {
         current_process = head;
       // advance the queue
         head = head->next;
@@ -51,16 +49,7 @@ __attribute__((used)) unsigned int process_select (unsigned int cursp)
     return current_process->sp;
 }
 
-void process_add(process_t *p) {
-  // add this process to the queue again
-  process_t* tail = head;
-  while(tail->next) {
-    tail = tail->next;
-  }
-  tail->next = p;
-  p->next = NULL;
-  return;
-}
+
 
 /* Starts up the concurrent execution */
 void process_start (void) {
@@ -80,10 +69,7 @@ int process_create (void (*f)(void), int n) {
     if((sp = process_init (f, n)) == 0) {
         return -1;
     };
-    proc->sp = sp;
-    proc->next = NULL;
-    proc->is_waiting = 0;
-    asm volatile("sei\n\t");
+    proc->s e("sei\n\t");
     return 0;
 }
 
