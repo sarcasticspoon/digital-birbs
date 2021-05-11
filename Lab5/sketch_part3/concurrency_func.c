@@ -197,32 +197,41 @@ int process_create_rtjob (void (*f)(void), int n, unsigned int wcet, unsigned in
   proc->wcet = wcet;
   
   // insert job into appropriate place in queue
+  process_t *last_of_rt;
   if(!head) {
       head = proc; 
     } else {
-      process_t *last_of_rt = head;
+      last_of_rt = head;
       while (last_of_rt->next) {
         if (last_of_rt->next->prio > proc->prio) break;
         if (last_of_rt->deadline < proc->deadline && last_of_rt->next->deadline > proc->deadline) break;
         last_of_rt = last_of_rt->next;
     }
 
-  // add the current process to the middle of the queue after the last process of matching priority
-  process_t *tmp = last_of_prio->next;
-  last_of_prio->next = proc;
-  last_of_prio->next->next = tmp;
+      // add the current process to the middle of the queue after the last process of matching priority
+      process_t *tmp = last_of_rt->next;
+      last_of_rt->next = proc;
+      last_of_rt->next->next = tmp;
+    }
 
   // check to see if schedule is feasible
-  tmp = head;
-  // start time is now + current_proc's wcet
-  double start = ((double) clock()) / CLOCKS_PER_SEC * 1000 + current_process->wcet; //-(clock()-current_process->start);
+  process_t* tmp = head;
+  // start time is current processes start time + current_proc's wcet
+  double start = current_process->wcet + current_process->start; //-(clock()-current_process->start);
   while(tmp->prio == 0) {
     if (tmp->deadline < start + tmp->wcet) {
       //TODO pull out the process from the queue 
+      if (last_of_rt) {
+        last_of_rt->next = last_of_rt->next->next;
+        free(proc);
+      } else {
+        head = NULL;
+      }
       return -1 //schedule is not feasible
     }
 
     start = start + tmp->wcet;
+    tmp = tmp->next;
   }
   
   // if it is, we need some way to set the start of the process
