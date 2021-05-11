@@ -93,8 +93,6 @@ int process_create (void (*f)(void), int n) {
     unsigned int sp;
     // malloc space for the process to go into the ready queue
     process_t * proc = process_malloc(sizeof(process_t));
-    //set default priority
-    proc->prio = 128;
     if(!proc) {
         return -1;
     }
@@ -105,6 +103,8 @@ int process_create (void (*f)(void), int n) {
     // initialize values for process, add to tail of linked list
     proc->sp = sp;
     proc->next = NULL;
+    //set default priority
+    proc->prio = 128;
     // default values for real time
     proc->start = NULL;
     proc->deadline = NULL;
@@ -114,7 +114,7 @@ int process_create (void (*f)(void), int n) {
     } else {
       process_t *last_of_prio = head;
       while (last_of_prio->next) {
-        if (last_of_prio->next->prio > 128) break;
+        if (last_of_prio->next->prio > proc->prio) break;
         last_of_prio = last_of_prio->next;
       }
 
@@ -163,7 +163,7 @@ int process_create_prio (void (*f)(void), int n, unsigned char prio) {
     } else {
       process_t *last_of_prio = head;
       while (last_of_prio->next) {
-        if (last_of_prio->next->prio > prio) break;
+        if (last_of_prio->next->prio > proc->prio) break;
         last_of_prio = last_of_prio->next;
       }
 
@@ -191,12 +191,39 @@ int process_create_rtjob (void (*f)(void), int n, unsigned int wcet, unsigned in
       return -1;
   };
   proc->sp = sp;
-  proc->prio = 255;
+  proc->prio = 0;
   proc->next = NULL;
   proc->deadline = ((double) clock()) / CLOCKS_PER_SEC * 1000 + deadline; // convert to milliseconds
   proc->wcet = wcet;
+  
+  // insert job into appropriate place in queue
+  if(!head) {
+      head = proc; 
+    } else {
+      process_t *last_of_rt = head;
+      while (last_of_rt->next) {
+        if (last_of_rt->next->prio > proc->prio) break;
+        if (last_of_rt->deadline < proc->deadline && last_of_rt->next->deadline > proc->deadline) break;
+        last_of_rt = last_of_rt->next;
+    }
+
+  // add the current process to the middle of the queue after the last process of matching priority
+  process_t *tmp = last_of_prio->next;
+  last_of_prio->next = proc;
+  last_of_prio->next->next = tmp;
 
   // check to see if schedule is feasible
+  tmp = head;
+  // start time is now + current_proc's wcet
+  double start = ((double) clock()) / CLOCKS_PER_SEC * 1000 + current_process->wcet; //-(clock()-current_process->start);
+  while(tmp->prio == 0) {
+    if (tmp->deadline < start + tmp->wcet) {
+      //TODO pull out the process from the queue 
+      return -1 //schedule is not feasible
+    }
+
+    start = start + tmp->wcet;
+  }
   
   // if it is, we need some way to set the start of the process
 
