@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <avr/io.h>
 #include "concurrency_func.h"
+#include "log.h"
 
 /* Called by the runtime system to select another process.
    "cursp" = the stack pointer for the currently running process
@@ -20,6 +21,10 @@
  */
 __attribute__((used)) unsigned int process_select (unsigned int cursp)
 {
+  //test! 
+  mlog("calling_process_select");
+  mlog((char*)cursp);
+  // disable interrupts outside
     // if no ready processes, continue with current process, return current sp
     if (!head) {
       return cursp;         
@@ -70,6 +75,11 @@ __attribute__((used)) unsigned int process_select (unsigned int cursp)
     // NULL out current process' next variable
     current_process->next = NULL;
 
+    //if RT job -> start the timer
+    if( current_process->start == 0) {
+      current_process->start = (double) clock() / CLOCKS_PER_SEC * 1000;
+    }
+
     // return current_process' sp
     return current_process->sp;
 }
@@ -106,8 +116,8 @@ int process_create (void (*f)(void), int n) {
     //set default priority
     proc->prio = 128;
     // default values for real time
-    proc->start = NULL;
-    proc->deadline = NULL;
+    proc->start = -1;
+    proc->deadline = -1;
     proc->wcet = 0;
     if(!head) {
       head = proc; 
@@ -155,8 +165,8 @@ int process_create_prio (void (*f)(void), int n, unsigned char prio) {
     proc->sp = sp;
     proc->next = NULL;
     // default for real time
-    proc->start = NULL;
-    proc->deadline = NULL;
+    proc->start = -1;
+    proc->deadline = -1;
     proc->wcet = 0;
     if(!head) {
       head = proc; 
@@ -193,6 +203,7 @@ int process_create_rtjob (void (*f)(void), int n, unsigned int wcet, unsigned in
   proc->sp = sp;
   proc->prio = 0;
   proc->next = NULL;
+  proc->start = 0;
   proc->deadline = ((double) clock()) / CLOCKS_PER_SEC * 1000 + deadline; // convert to milliseconds
   proc->wcet = wcet;
   
@@ -227,7 +238,7 @@ int process_create_rtjob (void (*f)(void), int n, unsigned int wcet, unsigned in
       } else {
         head = NULL;
       }
-      return -1 //schedule is not feasible
+      return -1; //schedule is not feasible
     }
 
     start = start + tmp->wcet;
@@ -235,7 +246,9 @@ int process_create_rtjob (void (*f)(void), int n, unsigned int wcet, unsigned in
   }
   
   // if it is, we need some way to set the start of the process
+  //we do this in process select
 
   // enable interrupts 
   asm volatile("sei\n\t");
+  return 0;
 }

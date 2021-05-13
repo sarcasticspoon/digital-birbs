@@ -9,6 +9,8 @@
 #define __CONCURRENCY_FUNC_H__
 
 #include "concurrency.h"
+#include <time.h>
+
 
 #ifdef __cplusplus
 extern "C" {

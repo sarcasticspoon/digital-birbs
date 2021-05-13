@@ -18,8 +18,8 @@ typedef struct process_state {
    unsigned int sp; /* stack pointer */
    struct process_state *next; /* link to next process */
    unsigned char prio;
-   clock_t start;
-   clock_t deadline;
+   double start; //all in milliseconds
+   double deadline;
    double wcet;
 } process_t;
    /* opaque definition of process type; you must provide this
