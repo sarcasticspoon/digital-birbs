@@ -1,4 +1,4 @@
-/*************************************************************************
+*************************************************************************
  *
  *  Copyright (c) 2013--2018 Bradley and Ivy
  *  All Rights Reserved
@@ -9,7 +9,8 @@
 #define __CONCURRENCY_FUNC_H__
 
 #include "concurrency.h"
-#include <Time.h>
+#include <time.h>
+#include <stdbool.h>
 
 
 #ifdef __cplusplus
@@ -23,12 +24,6 @@ extern "C" {
 ------------------------------------------------------------------------*/
 
 /* ====== Part 1 ====== */
-
-process_t *current_process; 
-/* the currently running process */
-
-process_t *head;
-/* the head of the ready queue */
 
 __attribute__((used)) unsigned int process_select (unsigned int cursp);
 /* Called by the runtime system to select another process.
@@ -56,7 +51,6 @@ void lock_init (lock_t *l);
 void lock_acquire (lock_t *l);
 void lock_release (lock_t *l);
 
-
 /*-- functions provided in the .c file --*/
 //unsigned int process_init (void (*f) (void), int n);
 //void process_begin ();
@@ -67,3 +61,4 @@ void lock_release (lock_t *l);
 #endif
 
 #endif /* __CONCURRENCY_FUNC_H__ */
+>>>>>>> 15493844fa651f9b3e0060682a9835174ce0cbe7

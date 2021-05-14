@@ -16,6 +16,7 @@ extern "C" {
 typedef struct process_state {
    unsigned int sp; /* stack pointer */
    struct process_state *next; /* link to next process */
+   unsigned char* bp;
 } process_t;
    /* opaque definition of process type; you must provide this
       implementation.
@@ -58,7 +59,7 @@ void lock_release (lock_t *l);
 
 /*-- functions provided in the .c file --*/
 
-unsigned int process_init (void (*f) (void), int n);
+unsigned int process_init (void (*f) (void), int n, process_t *proc);
 void process_begin ();
 void yield ();
 

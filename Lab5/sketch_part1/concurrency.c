@@ -46,22 +46,7 @@ __attribute__((used)) void process_begin ()
 
 __attribute__((used)) void process_terminated ()
 {
-  asm volatile (
-		"cli\n\t"
-		"pop r0\n\t"
-		"sts _n_hi, r0\n\t"
-		"pop r0\n\t"
-		"sts _n_lo, r0\n\t"
-		"in r25, __SP_H__\n\t"
-		"sts _free_sp_hi, r25\n\t"
-		"in r24, __SP_L__\n\t"
-		"sts _free_sp_lo, r24\n\t"
-  );
-
-  uintptr_t stack_addr = _free_sp_hi << 8 + _free_sp_lo;
-  uintptr_t n = _n_hi << 8 + _n_lo;
-  uintptr_t base_addr = stack_addr - n;
-  free((unsigned char*)base_addr);
+  free(current_process->bp);
   free(current_process);
 
   asm volatile (
@@ -176,12 +161,12 @@ __attribute__((used)) void process_timer_interrupt()
 
 
 /*
- * Stack: save 32 regs, +2 for entry point +2 for ret address, +2 for size of stack
+ * Stack: save 32 regs, +2 for entry point +2 for ret address
  */
-#define EXTRA_SPACE 39
+#define EXTRA_SPACE 37
 #define EXTRA_PAD 4
 
-unsigned int process_init (void (*f) (void), int n)
+unsigned int process_init (void (*f) (void), int n, process_t *proc)
 {
   unsigned long stk;
   int i;
@@ -190,6 +175,7 @@ unsigned int process_init (void (*f) (void), int n)
   /* Create a new process */
   n += EXTRA_SPACE + EXTRA_PAD;
   stkspace = (unsigned char *) process_malloc (n);
+  proc->bp = stkspace;
 
   if (stkspace == NULL) {
     /* failed! */
@@ -203,12 +189,10 @@ unsigned int process_init (void (*f) (void), int n)
 
   n -= EXTRA_PAD;
 
-  stkspace[n-1] = n & 0xff;
-  stkspace[n-2] = n >> 8;
-  stkspace[n-3] = ( (unsigned int) process_terminated ) & 0xff;
-  stkspace[n-4] = ( (unsigned int) process_terminated ) >> 8;
-  stkspace[n-5] = ( (unsigned int) f ) & 0xff;
-  stkspace[n-6] = ( (unsigned int) f ) >> 8;
+  stkspace[n-1] = ( (unsigned int) process_terminated ) & 0xff;
+  stkspace[n-2] = ( (unsigned int) process_terminated ) >> 8;
+  stkspace[n-3] = ( (unsigned int) f ) & 0xff;
+  stkspace[n-4] = ( (unsigned int) f ) >> 8;
 
   /* SREG */
   stkspace[n-EXTRA_SPACE] = SREG;
