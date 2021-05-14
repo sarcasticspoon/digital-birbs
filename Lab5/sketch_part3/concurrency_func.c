@@ -77,7 +77,7 @@ __attribute__((used)) unsigned int process_select (unsigned int cursp)
 
     //if RT job -> start the timer
     if( current_process->start == 0) {
-      current_process->start = (double) clock() / CLOCKS_PER_SEC * 1000;
+      current_process->start = (double) millis()
     }
 
     // return current_process' sp
@@ -204,7 +204,7 @@ int process_create_rtjob (void (*f)(void), int n, unsigned int wcet, unsigned in
   proc->prio = 0;
   proc->next = NULL;
   proc->start = 0;
-  proc->deadline = ((double) clock()) / CLOCKS_PER_SEC * 1000 + deadline; // convert to milliseconds
+  proc->deadline = (double) millis() + deadline; // convert to milliseconds
   proc->wcet = wcet;
   
   // insert job into appropriate place in queue
@@ -228,7 +228,7 @@ int process_create_rtjob (void (*f)(void), int n, unsigned int wcet, unsigned in
   // check to see if schedule is feasible
   process_t* tmp = head;
   // start time is current processes start time + current_proc's wcet
-  double start = current_process->wcet + current_process->start; //-(clock()-current_process->start);
+  double start = current_process->wcet + current_process->start; 
   while(tmp->prio == 0) {
     if (tmp->deadline < start + tmp->wcet) {
       //TODO pull out the process from the queue 

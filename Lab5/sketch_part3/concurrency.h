@@ -8,7 +8,7 @@
 #ifndef __CONCURRENCY_H__
 #define __CONCURRENCY_H__
 
-#include <time.h>
+#include <Arduino.h>
 
 #ifdef __cplusplus
 extern "C" {

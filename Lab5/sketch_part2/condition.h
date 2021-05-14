@@ -1,7 +1,7 @@
 #ifndef __CONDITION_H__
 #define __CONDITION_H__
 
-#include "concurrency.h"
+#include "concurrency_func.h"
 
 #ifdef __cplusplus
 extern "C" {

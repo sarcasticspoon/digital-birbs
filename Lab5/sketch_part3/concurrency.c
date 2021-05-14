@@ -60,14 +60,13 @@ __attribute__((used)) void process_terminated ()
 
   double diff = 0;
   // check to see if wcet is accurate
-  double time_elapsed = (double) clock();
-  time_elapsed = time_elapsed / CLOCKS_PER_SEC * 1000; // convert to milliseconds
+  double time_elapsed = (double) millis();
   time_elapsed = time_elapsed - current_process->start;
   // check to see if wcet is accurate
   diff = current_process->wcet - time_elapsed;
   // TODO we need to report the difference, negative means took longer than expected
   // TODO check to see if we missed the deadline and if it's because of this difference
-  double deadline_diff = current_process->deadline - ((double) clock() / CLOCKS_PER_SEC * 1000);
+  double deadline_diff = current_process->deadline - (double) millis();
   if(deadline_diff < 0) {
     // means that we missed the deadline
     // check to see if the difference can be accounted for by the difference between wcet and actual execution time

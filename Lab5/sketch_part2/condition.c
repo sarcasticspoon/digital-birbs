@@ -1,4 +1,5 @@
 #include "condition.h"
+#include <stddef.h>
 
 /* initialize condition variable queue and associate it with lock */
 void cond_init (lock_t *m, cond_t *c) {
@@ -18,11 +19,15 @@ void cond_wait (lock_t *m, cond_t *c) {
   // put yourself on the queue and yield
   current_process->is_waiting = 1;
   process_t* tail = c->head;
-  
-  while(tail->next) {
-    tail = tail->next;
+  if(!tail) {
+    c->head = current_process;
+  } else {
+    while(tail->next) {
+      tail = tail->next;
+    }
+    tail->next = current_process;
   }
-  tail->next = current_process;
+
   yield();
   // reacquire the lock after coming back
   lock_acquire(m);
@@ -50,7 +55,7 @@ void cond_signal (lock_t *m, cond_t *c) {
 int cond_waiting (lock_t *m, cond_t *c) {
   // check to see if the lock is the same
   if(m != c->lock) {
-    return 0;
+    return 1;
   }
   if(c->head) {
     return 1;

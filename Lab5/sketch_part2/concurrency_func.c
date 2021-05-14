@@ -54,10 +54,14 @@ __attribute__((used)) unsigned int process_select (unsigned int cursp)
 void process_add(process_t *p) {
   // add this process to the queue again
   process_t* tail = head;
-  while(tail->next) {
-    tail = tail->next;
+  if(!head) {
+    head = p;
+  } else {
+    while(tail->next) {
+      tail = tail->next;
+    }
+    tail->next = p;
   }
-  tail->next = p;
   p->next = NULL;
   return;
 }
@@ -83,6 +87,15 @@ int process_create (void (*f)(void), int n) {
     proc->sp = sp;
     proc->next = NULL;
     proc->is_waiting = 0;
+    if(!head) {
+      head = proc; 
+    } else {
+      process_t *tail = head;
+      while (tail->next) {
+          tail = tail->next;
+      }
+      tail->next = proc;
+    }
     asm volatile("sei\n\t");
     return 0;
 }

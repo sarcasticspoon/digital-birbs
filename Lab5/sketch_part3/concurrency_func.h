@@ -9,7 +9,7 @@
 #define __CONCURRENCY_FUNC_H__
 
 #include "concurrency.h"
-#include <time.h>
+#include <Time.h>
 
 
 #ifdef __cplusplus
