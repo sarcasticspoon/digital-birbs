@@ -51,41 +51,41 @@ __attribute__((used)) void process_terminated ()
 {
   asm volatile (
 		"cli\n\t"
-		"pop r0\n\t"
-		"sts _n_hi, r0\n\t"
-		"pop r0\n\t"
-		"sts _n_lo, r0\n\t"
-		"in r25, __SP_H__\n\t"
-		"sts _free_sp_hi, r25\n\t"
-		"in r24, __SP_L__\n\t"
-		"sts _free_sp_lo, r24\n\t"
   );
 
-	double diff = 0;
-	// check to see if wcet is accurate
-	double time_elapsed = (double) millis();
-	time_elapsed = time_elapsed - current_process->start;
-	// check to see if wcet is accurate
-	diff = current_process->wcet - time_elapsed;
-	// TODO we need to report the difference, negative means took longer than expected
-	// TODO check to see if we missed the deadline and if it's because of this difference
-	double deadline_diff = current_process->deadline - (double) millis();
-	if(deadline_diff < 0) {
-		// means that we missed the deadline
-		// check to see if the difference can be accounted for by the difference between wcet and actual execution time
-		if(diff < 0) {
-		if(deadline_diff - diff >= 0) {
-			// means we missed deadline because of wcet difference
-			// ie wcet difference is greater or equal to deadline miss
-			// TODO report this somehow
-		}
+	if(current_process->deadline > 0){
+		double diff = 0;
+		// check to see if wcet is accurate
+		double time_elapsed = (double) millis();
+		time_elapsed = time_elapsed - current_process->start;
+		// check to see if wcet is accurate
+		diff = current_process->wcet - time_elapsed;
+		// TODO we need to report the difference, negative means took longer than expected
+		// TODO check to see if we missed the deadline and if it's because of this difference
+		double deadline_diff = current_process->deadline - (double) millis();
+		if(deadline_diff < 0) {
+			// means that we missed the deadline
+			// check to see if the difference can be accounted for by the difference between wcet and actual execution time
+			if(diff < 0) {
+			if(deadline_diff - diff >= 0) {
+				// means we missed deadline because of wcet difference
+				// ie wcet difference is greater or equal to deadline miss
+				// TODO report this somehow
+				mlog("process terminated, the wcet is: ");
+				dlog(current_process->wcet);
+				mlog(" execution time is: ");
+				dlog(time_elapsed);
+				mlog(" diff is: ");
+				dlog(diff);
+				mlog("\n");
+			}
+			}
 		}
 	}
+
+	
   
-  uintptr_t stack_addr = _free_sp_hi << 8 + _free_sp_lo;
-  uintptr_t n = _n_hi << 8 + _n_lo;
-  uintptr_t base_addr = stack_addr - n;
-  free((unsigned char*)base_addr);
+  free(current_process->bp);
   free(current_process);
   
   asm volatile (
@@ -202,10 +202,10 @@ __attribute__((used)) void process_timer_interrupt()
 /*
  * Stack: save 32 regs, +2 for entry point +2 for ret address, +2 for stack size
  */
-#define EXTRA_SPACE 39
+#define EXTRA_SPACE 37
 #define EXTRA_PAD 4
 
-unsigned int process_init (void (*f) (void), int n)
+unsigned int process_init (void (*f) (void), int n, process_t* proc)
 {
   unsigned long stk;
   int i;
@@ -214,6 +214,7 @@ unsigned int process_init (void (*f) (void), int n)
   /* Create a new process */
   n += EXTRA_SPACE + EXTRA_PAD;
   stkspace = (unsigned char *) process_malloc (n);
+  proc->bp = stkspace;
 
   if (stkspace == NULL) {
     /* failed! */
@@ -227,12 +228,10 @@ unsigned int process_init (void (*f) (void), int n)
 
   n -= EXTRA_PAD;
 
-  stkspace[n-1] = n & 0xff;
-  stkspace[n-2] = n >> 8;
-  stkspace[n-3] = ( (unsigned int) process_terminated ) & 0xff;
-  stkspace[n-4] = ( (unsigned int) process_terminated ) >> 8;
-  stkspace[n-5] = ( (unsigned int) f ) & 0xff;
-  stkspace[n-6] = ( (unsigned int) f ) >> 8;
+  stkspace[n-1] = ( (unsigned int) process_terminated ) & 0xff;
+  stkspace[n-2] = ( (unsigned int) process_terminated ) >> 8;
+  stkspace[n-3] = ( (unsigned int) f ) & 0xff;
+  stkspace[n-4] = ( (unsigned int) f ) >> 8;
 
   /* SREG */
   stkspace[n-EXTRA_SPACE] = SREG;

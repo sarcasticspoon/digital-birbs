@@ -9,7 +9,7 @@
 #define __CONCURRENCY_FUNC_H__
 
 #include "concurrency.h"
-#include <Arduino.h>
+#include <time.h>
 #include <stdbool.h>
 
 
@@ -61,3 +61,4 @@ void lock_release (lock_t *l);
 #endif
 
 #endif /* __CONCURRENCY_FUNC_H__ */
+
