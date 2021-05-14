@@ -136,7 +136,7 @@ void writer_exit() {
   nw--;
   if (nw == 0 && cond_waiting(users_lock, no_writers)) {
     lock_acquire(serial_lock);
-    Serial.print("No writers");
+    Serial.print("XYZ");
     lock_release(serial_lock);
     cond_signal(users_lock, no_writers); 
   } else if(nr == 0 && nw == 0 && cond_waiting(users_lock, no_users)) {
@@ -197,6 +197,9 @@ int test1_setup() {
   no_users = (cond_t*) malloc(sizeof(cond_t));
   cond_init(users_lock, no_users);
   no_writers = (cond_t*) malloc(sizeof(cond_t));
+  lock_acquire(serial_lock);
+  Serial.print("The quick brown fox jumps over the lazy purple dog. Purple rain, purple rain.\n");
+  lock_release(serial_lock);
   cond_init(users_lock, no_writers);
   if(process_create(reader, 64) < 0) {
     return 0;

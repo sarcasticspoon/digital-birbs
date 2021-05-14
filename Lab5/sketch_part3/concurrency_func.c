@@ -11,7 +11,6 @@ process_t *current_process;
 process_t *head;
 /* the head of the ready queue */
 
-double msg;
 /* Called by the runtime system to select another process.
    "cursp" = the stack pointer for the currently running process
 */
@@ -217,10 +216,14 @@ int process_create_rtjob (void (*f)(void), int n, unsigned int wcet, unsigned in
   proc->deadline = ((double) millis()) + deadline; // convert to milliseconds
   proc->wcet = wcet;
   
+  // dlog(proc->deadline);
+  // dlog(proc->wcet);
+  // dlog(millis());
   // insert job into appropriate place in queue
   process_t *last_of_rt;
   if(!head) {
       head = proc; 
+      mlog("assigning head\n");
     } else {
       last_of_rt = head;
       while (last_of_rt->next) {
@@ -228,7 +231,7 @@ int process_create_rtjob (void (*f)(void), int n, unsigned int wcet, unsigned in
         if (last_of_rt->deadline < proc->deadline && last_of_rt->next->deadline > proc->deadline) break;
         last_of_rt = last_of_rt->next;
     }
-
+      mlog("adding to list\n");
       // add the current process to the middle of the queue after the last process of matching priority
       process_t *tmp = last_of_rt->next;
       last_of_rt->next = proc;
@@ -238,16 +241,33 @@ int process_create_rtjob (void (*f)(void), int n, unsigned int wcet, unsigned in
   // check to see if schedule is feasible
   process_t* tmp = head;
   // start time is current processes start time + current_proc's wcet
-  double start = current_process->wcet + current_process->start; //-(clock()-current_process->start);
+  double start = millis(); 
+  if (current_process) {
+    start = current_process->wcet + current_process->start; 
+  }
+  dlog(tmp->deadline);
+  dlog(start);
+  dlog(tmp->wcet);
+  //-(clock()-current_process->start);
   while(tmp->prio == 0) {
     if (tmp->deadline < start + tmp->wcet) {
+      mlog("not feasible\n");
+      dlog(tmp->deadline);
+      dlog(start);
+      dlog(tmp->wcet);
+      mlog("\n");
+      if (tmp->deadline < start + tmp->wcet){}
+      dlog(tmp->deadline);
+      dlog(start);
+      dlog(tmp->wcet);
       //TODO pull out the process from the queue 
       if (last_of_rt) {
         last_of_rt->next = last_of_rt->next->next;
         free(proc->bp);
         free(proc);
       } else {
-        head = NULL;
+        free(head->bp);
+        free(head);
       }
       return -1; //schedule is not feasible
     }
@@ -255,6 +275,8 @@ int process_create_rtjob (void (*f)(void), int n, unsigned int wcet, unsigned in
     start = start + tmp->wcet;
     tmp = tmp->next;
   }
+
+  mlog("feasible\n");
   
   // if it is, we need some way to set the start of the process
   //we do this in process select
