@@ -12,14 +12,15 @@
 __attribute__((used)) unsigned int process_select (unsigned int cursp)
 {
     // if no ready processes, continue with current process
-    mlog("changing processes");
+    
     if (!head) {
+//      mlog("ho head");
       return cursp;         
     }
     
     //if no current process, don't add anything to queue 
     if (cursp == 0 || current_process->is_waiting) {
-        mlog("no current process or waiting");
+//        mlog("no current process or waiting");
         current_process = head;
       // advance the queue
         head = head->next;
@@ -29,7 +30,7 @@ __attribute__((used)) unsigned int process_select (unsigned int cursp)
       //dont add current process to the back of the queue.
     }
 
-    mlog("changing processes; process exists");
+//    mlog("changing processes; process exists");
     // find the end of the process queue
     process_t *end = head;
     while (end->next) {

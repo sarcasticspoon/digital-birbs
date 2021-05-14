@@ -170,18 +170,27 @@ void writer() {
 
 void reader() {
   while(1) {
+    // print statements to see if in reader
     lock_acquire(serial_lock);
     Serial.print("in reader");
     lock_release(serial_lock);
+
+    // help serial port run
     if(serialEventRun) serialEventRun();
+    // enter reader entry to check if there are any writers
     reader_entry();
+    
+    // read from the book variable
     lock_acquire(book_lock);
     lock_acquire(serial_lock);
-    Serial.print("Reader reading");
+    Serial.print("Reader reading ");
     Serial.println(book);
     lock_release(serial_lock);
     lock_release(book_lock);
+    
+    // decrement nr and signal any waiting writers
     reader_exit();
+    
     delay(100);
   }
 }
@@ -207,26 +216,30 @@ int test1_setup() {
   return 1;
 }
 
+int test2_setup() {
+  Serial.begin(9600);
+  book_lock = (lock_t*)malloc(sizeof(lock_t));
+  lock_init(book_lock);
+  users_lock = (lock_t*)malloc(sizeof(lock_t));
+  lock_init(users_lock);
+  no_users = (cond_t*)malloc(sizeof(cond_t));
+  cond_init(users_lock, no_users);
+  if(process_create(p1, 128) < 0) {
+    return 0;
+  }
+  if(process_create(p2, 128) < 0) {
+    return 0;
+  }
+  if(process_create(p3, 128) < 0) {
+    return 0;
+  }
+  return 1;
+}
+
 void setup() {
-  if(!test1_setup()) {
+  if(!test2_setup()) {
     return;
   }
-//  Serial.begin(9600);
-//  book_lock = (lock_t*)malloc(sizeof(lock_t));
-//  lock_init(book_lock);
-//  users_lock = (lock_t*)malloc(sizeof(lock_t));
-//  lock_init(users_lock);
-//  no_users = (cond_t*)malloc(sizeof(cond_t));
-//  cond_init(users_lock, no_users);
-//  if(process_create(p1, 128) < 0) {
-//    return;
-//  }
-//  if(process_create(p2, 128) < 0) {
-//    return;
-//  }
-//  if(process_create(p3, 128) < 0) {
-//    return;
-//  }
 }
 
 void loop() {
