@@ -3,7 +3,7 @@
 #include <avr/io.h>
 #include "concurrency_func.h"
 
-lock_t serial_lock;
+lock_t* serial_lock;
 
 process_t *current_process; 
 /* the currently running process */
@@ -223,7 +223,9 @@ int process_create_rtjob (void (*f)(void), int n, unsigned int wcet, unsigned in
   process_t *last_of_rt;
   if(!head) {
       head = proc; 
+      lock_acquire(serial_lock);
       mlog("assigning head\n");
+      lock_release(serial_lock);
     } else {
       last_of_rt = head;
       while (last_of_rt->next) {
@@ -231,7 +233,10 @@ int process_create_rtjob (void (*f)(void), int n, unsigned int wcet, unsigned in
         if (last_of_rt->deadline < proc->deadline && last_of_rt->next->deadline > proc->deadline) break;
         last_of_rt = last_of_rt->next;
     }
+      lock_acquire(serial_lock);
       mlog("adding to list\n");
+      lock_release(serial_lock);
+
       // add the current process to the middle of the queue after the last process of matching priority
       process_t *tmp = last_of_rt->next;
       last_of_rt->next = proc;
@@ -245,12 +250,15 @@ int process_create_rtjob (void (*f)(void), int n, unsigned int wcet, unsigned in
   if (current_process) {
     start = current_process->wcet + current_process->start; 
   }
+  lock_acquire(serial_lock);
   dlog(tmp->deadline);
   dlog(start);
   dlog(tmp->wcet);
+  lock_release(serial_lock);
   //-(clock()-current_process->start);
   while(tmp->prio == 0) {
     if (tmp->deadline < start + tmp->wcet) {
+      lock_acquire(serial_lock);
       mlog("not feasible\n");
       dlog(tmp->deadline);
       dlog(start);
@@ -260,6 +268,7 @@ int process_create_rtjob (void (*f)(void), int n, unsigned int wcet, unsigned in
       dlog(tmp->deadline);
       dlog(start);
       dlog(tmp->wcet);
+      lock_release(serial_lock);
       //TODO pull out the process from the queue 
       if (last_of_rt) {
         last_of_rt->next = last_of_rt->next->next;

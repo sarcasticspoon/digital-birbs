@@ -3,7 +3,7 @@
 
 #include "concurrency_func.h"
 
-extern "C" lock_t serial_lock;
+extern "C" lock_t* serial_lock;
 
 /*
  * P1 - P4 each prints the process name and the loop iteration 
@@ -210,10 +210,10 @@ int test7_setup(){
  */
 void setup() {
   Serial.begin(9600);
+  lock_init(serial_lock);
   if(test7_setup() < 0) {
     return;
   }
-  lock_init(&serial_lock);
 }
 
 void loop() {
