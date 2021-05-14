@@ -10,6 +10,7 @@
 
 #include <Arduino.h>
 #include <stdbool.h>
+#include "log.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -22,6 +23,7 @@ typedef struct process_state {
    double start; //all in milliseconds
    double deadline;
    double wcet;
+   unsigned char* bp;
 } process_t;
    /* opaque definition of process type; you must provide this
       implementation.
@@ -63,7 +65,7 @@ void lock_release (lock_t *l);
 
 /*-- functions provided in the .c file --*/
 
-unsigned int process_init (void (*f) (void), int n);
+unsigned int process_init (void (*f) (void), int n, process_t* proc);
 void process_begin ();
 void yield ();
 

@@ -4,13 +4,13 @@ extern "C" {
 }
 
 void mlog(const char *msg) {
-  Serial.println(msg);
+  Serial.print(msg);
 }
 
 void dlog(double d) {
-  Serial.println(d);
+  Serial.print(d);
 }
 
 void ilog(unsigned int d) {
-  Serial.println(d);
+  Serial.print(d);
 }

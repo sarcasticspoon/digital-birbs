@@ -46,6 +46,10 @@ __attribute__((used)) void process_begin ()
 
 __attribute__((used)) void process_terminated ()
 {
+	asm volatile (
+		"cli \n\t"
+		);
+		
   free(current_process->bp);
   free(current_process);
 

@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <avr/io.h>
 #include "concurrency_func.h"
-#include "log.h"
 
 lock_t serial_lock;
 
@@ -32,8 +31,8 @@ __attribute__((used)) unsigned int process_select (unsigned int cursp)
 {
   //test! 
   // mlog("calling_process_select");
-  ilog(current_process->prio);
-  ilog(current_process->prio);
+  // ilog(current_process->prio);
+  // ilog(current_process->prio);
   // disable interrupts outside
     // if no ready processes, continue with current process, return current sp
     if (!head) {
@@ -118,7 +117,7 @@ int process_create (void (*f)(void), int n) {
         return -1;
     }
     // call process_init to set up the stack for this proccess
-    if((sp = process_init (f, n)) == 0) {
+    if((sp = process_init (f, n, proc)) == 0) {
         return -1;
     };
     // initialize values for process, add to tail of linked list
@@ -165,7 +164,7 @@ int process_create_prio (void (*f)(void), int n, unsigned char prio) {
         return -1;
     }
     // call process_init to set up the stack for this proccess
-    if((sp = process_init (f, n)) == 0) {
+    if((sp = process_init (f, n, proc)) == 0) {
         return -1;
     };
     //set user selected priority
@@ -208,14 +207,14 @@ int process_create_rtjob (void (*f)(void), int n, unsigned int wcet, unsigned in
       return -1;
   }
   // call process_init to set up the stack for this proccess
-  if((sp = process_init(f, n)) == 0) {
+  if((sp = process_init(f, n, proc)) == 0) {
       return -1;
   };
   proc->sp = sp;
   proc->prio = 0;
   proc->next = NULL;
   proc->start = 0;
-  // proc->deadline = ((double) clock()) / CLOCKS_PER_SEC * 1000 + deadline; // convert to milliseconds
+  proc->deadline = ((double) millis()) + deadline; // convert to milliseconds
   proc->wcet = wcet;
   
   // insert job into appropriate place in queue
@@ -245,6 +244,7 @@ int process_create_rtjob (void (*f)(void), int n, unsigned int wcet, unsigned in
       //TODO pull out the process from the queue 
       if (last_of_rt) {
         last_of_rt->next = last_of_rt->next->next;
+        free(proc->bp);
         free(proc);
       } else {
         head = NULL;
@@ -288,4 +288,4 @@ void lock_release (lock_t *l){
   l->lock = false;
   asm volatile("sei\n\t");
 }
->>>>>>> 15493844fa651f9b3e0060682a9835174ce0cbe7
+
