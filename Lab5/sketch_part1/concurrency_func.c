@@ -87,7 +87,7 @@ int process_create (void (*f)(void), int n) {
         return -1;
     }
     // call process_init to set up the stack for this proccess
-    if((sp = process_init (f, n)) == 0) {
+    if((sp = process_init (f, n, proc)) == 0) {
         return -1;
     };
     // initialize values for process, add to tail of linked list

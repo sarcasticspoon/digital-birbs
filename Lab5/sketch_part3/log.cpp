@@ -6,3 +6,11 @@ extern "C" {
 void mlog(const char *msg) {
   Serial.println(msg);
 }
+
+void dlog(double d) {
+  Serial.println(d);
+}
+
+void ilog(unsigned int d) {
+  Serial.println(d);
+}

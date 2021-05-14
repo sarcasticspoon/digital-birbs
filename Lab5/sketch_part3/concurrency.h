@@ -9,6 +9,7 @@
 #define __CONCURRENCY_H__
 
 #include <time.h>
+#include <stdbool.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -17,7 +18,7 @@ extern "C" {
 typedef struct process_state {
    unsigned int sp; /* stack pointer */
    struct process_state *next; /* link to next process */
-   unsigned char prio;
+   unsigned int prio;
    double start; //all in milliseconds
    double deadline;
    double wcet;
@@ -35,9 +36,6 @@ typedef struct process_state {
 
 /* ====== Part 1 ====== */
 
-extern process_t *current_process; 
-/* the currently running process */
-
 __attribute__((used)) unsigned int process_select (unsigned int cursp);
 /* Called by the runtime system to select another process.
    "cursp" = the stack pointer for the currently running process
@@ -53,13 +51,15 @@ void *process_malloc(int sz);
 
 /* ===== Part 2 ====== */
 
-typedef struct lock_state lock_t;
+typedef struct lock_state
+{
+   bool lock;
+} lock_t;
   /* you have to define the lock_state structure */
 
 void lock_init (lock_t *l);
 void lock_acquire (lock_t *l);
 void lock_release (lock_t *l);
-
 
 /*-- functions provided in the .c file --*/
 

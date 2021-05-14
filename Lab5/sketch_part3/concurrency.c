@@ -3,6 +3,9 @@
 #include <avr/io.h>
 #include "concurrency.h"
 
+extern process_t *current_process; 
+/* the currently running process */
+
 __attribute__((used)) unsigned char _orig_sp_hi, _orig_sp_lo;
 
 __attribute__((used)) unsigned char _save_sp_hi, _save_sp_lo;
@@ -60,25 +63,25 @@ __attribute__((used)) void process_terminated ()
 
   double diff = 0;
   // check to see if wcet is accurate
-  double time_elapsed = (double) clock();
-  time_elapsed = time_elapsed / CLOCKS_PER_SEC * 1000; // convert to milliseconds
-  time_elapsed = time_elapsed - current_process->start;
+//   double time_elapsed = (double) clock();
+//   time_elapsed = time_elapsed / CLOCKS_PER_SEC * 1000; // convert to milliseconds
+//   time_elapsed = time_elapsed - current_process->start;
   // check to see if wcet is accurate
-  diff = current_process->wcet - time_elapsed;
+//   diff = current_process->wcet - time_elapsed;
   // TODO we need to report the difference, negative means took longer than expected
   // TODO check to see if we missed the deadline and if it's because of this difference
-  double deadline_diff = current_process->deadline - ((double) clock() / CLOCKS_PER_SEC * 1000);
-  if(deadline_diff < 0) {
+//   double deadline_diff = current_process->deadline - ((double) clock() / CLOCKS_PER_SEC * 1000);
+//   if(deadline_diff < 0) {
     // means that we missed the deadline
     // check to see if the difference can be accounted for by the difference between wcet and actual execution time
-    if(diff < 0) {
-      if(deadline_diff - diff >= 0) {
+    // if(diff < 0) {
+    //   if(deadline_diff - diff >= 0) {
         // means we missed deadline because of wcet difference
         // ie wcet difference is greater or equal to deadline miss
         // TODO report this somehow
-      }
-    }
-  }
+//       }
+//     }
+//   }
   
   uintptr_t stack_addr = _free_sp_hi << 8 + _free_sp_lo;
   uintptr_t n = _n_hi << 8 + _n_lo;

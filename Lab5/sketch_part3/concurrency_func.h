@@ -10,6 +10,7 @@
 
 #include "concurrency.h"
 #include <time.h>
+#include <stdbool.h>
 
 
 #ifdef __cplusplus
@@ -23,12 +24,6 @@ extern "C" {
 ------------------------------------------------------------------------*/
 
 /* ====== Part 1 ====== */
-
-process_t *current_process; 
-/* the currently running process */
-
-process_t *head;
-/* the head of the ready queue */
 
 __attribute__((used)) unsigned int process_select (unsigned int cursp);
 /* Called by the runtime system to select another process.
@@ -55,7 +50,6 @@ typedef struct lock_state lock_t;
 void lock_init (lock_t *l);
 void lock_acquire (lock_t *l);
 void lock_release (lock_t *l);
-
 
 /*-- functions provided in the .c file --*/
 //unsigned int process_init (void (*f) (void), int n);

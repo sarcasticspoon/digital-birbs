@@ -2,6 +2,9 @@
 #define LED2 11
 
 #include "concurrency_func.h"
+
+extern "C" lock_t serial_lock;
+
 /*
  * P1 - P4 each prints the process name and the loop iteration 
  * after a different delay for a different number of iterations
@@ -175,7 +178,7 @@ int test6_setup(){
   if(process_create_prio(p2, 64, 127) < 0) {
     return -1;
   }
-  if(process_create(p3, 64) < 0) {
+  if(process_create_prio(p3, 64, 126) < 0) {
     return -1;
   }
   return 0;
@@ -190,6 +193,7 @@ void setup() {
   if(test6_setup() < 0) {
     return;
   }
+  lock_init(&serial_lock);
 }
 
 void loop() {

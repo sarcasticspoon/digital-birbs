@@ -4,6 +4,15 @@
 #include "concurrency_func.h"
 #include "log.h"
 
+lock_t serial_lock;
+
+process_t *current_process; 
+/* the currently running process */
+
+process_t *head;
+/* the head of the ready queue */
+
+double msg;
 /* Called by the runtime system to select another process.
    "cursp" = the stack pointer for the currently running process
 */
@@ -22,8 +31,9 @@
 __attribute__((used)) unsigned int process_select (unsigned int cursp)
 {
   //test! 
-  mlog("calling_process_select");
-  mlog((char*)cursp);
+  // mlog("calling_process_select");
+  ilog(current_process->prio);
+  ilog(current_process->prio);
   // disable interrupts outside
     // if no ready processes, continue with current process, return current sp
     if (!head) {
@@ -46,6 +56,7 @@ __attribute__((used)) unsigned int process_select (unsigned int cursp)
     //if next processes priority is lower than current process, do nothing
     if(head->prio > current_process->prio) {
         current_process->sp = cursp;
+        // mlog("doing nothing");
         return current_process->sp;
     }
 
@@ -77,7 +88,7 @@ __attribute__((used)) unsigned int process_select (unsigned int cursp)
 
     //if RT job -> start the timer
     if( current_process->start == 0) {
-      current_process->start = (double) clock() / CLOCKS_PER_SEC * 1000;
+      // current_process->start = (double) clock() / CLOCKS_PER_SEC * 1000;
     }
 
     // return current_process' sp
@@ -158,7 +169,7 @@ int process_create_prio (void (*f)(void), int n, unsigned char prio) {
         return -1;
     };
     //set user selected priority
-    proc->prio = prio;
+    proc->prio = (unsigned int)prio;
     // initialize values for process, add to tail of linked list
     proc->sp = sp;
     // why do we need to of these? TODO
@@ -204,7 +215,7 @@ int process_create_rtjob (void (*f)(void), int n, unsigned int wcet, unsigned in
   proc->prio = 0;
   proc->next = NULL;
   proc->start = 0;
-  proc->deadline = ((double) clock()) / CLOCKS_PER_SEC * 1000 + deadline; // convert to milliseconds
+  // proc->deadline = ((double) clock()) / CLOCKS_PER_SEC * 1000 + deadline; // convert to milliseconds
   proc->wcet = wcet;
   
   // insert job into appropriate place in queue
@@ -251,4 +262,29 @@ int process_create_rtjob (void (*f)(void), int n, unsigned int wcet, unsigned in
   // enable interrupts 
   asm volatile("sei\n\t");
   return 0;
+}
+
+void lock_init (lock_t *l) {
+  asm volatile("cli\n\t");
+  // l = (lock_t*) malloc(sizeof(lock_t));
+  l->lock = false; 
+  asm volatile("sei\n\t");
+  return;
+}
+
+void lock_acquire (lock_t *l){
+  asm volatile("cli\n\t");
+  while (l->lock) {
+    yield();
+  }
+
+  l->lock = true;
+  asm volatile("sei\n\t");
+}
+
+
+void lock_release (lock_t *l){
+  asm volatile("cli\n\t");
+  l->lock = false;
+  asm volatile("sei\n\t");
 }
