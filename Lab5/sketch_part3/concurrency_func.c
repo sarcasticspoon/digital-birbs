@@ -215,6 +215,7 @@ int process_create_rtjob (void (*f)(void), int n, unsigned int wcet, unsigned in
   proc->prio = 0;
   proc->next = NULL;
   proc->start = 0;
+  proc->deadline = (double) millis();
   // proc->deadline = ((double) clock()) / CLOCKS_PER_SEC * 1000 + deadline; // convert to milliseconds
   proc->wcet = wcet;
   
@@ -288,4 +289,3 @@ void lock_release (lock_t *l){
   l->lock = false;
   asm volatile("sei\n\t");
 }
->>>>>>> 15493844fa651f9b3e0060682a9835174ce0cbe7

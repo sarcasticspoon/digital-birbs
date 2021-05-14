@@ -1,4 +1,4 @@
-*************************************************************************
+/*************************************************************************
  *
  *  Copyright (c) 2013--2018 Bradley and Ivy
  *  All Rights Reserved
@@ -9,7 +9,7 @@
 #define __CONCURRENCY_FUNC_H__
 
 #include "concurrency.h"
-#include <time.h>
+#include <Arduino.h>
 #include <stdbool.h>
 
 
@@ -61,4 +61,3 @@ void lock_release (lock_t *l);
 #endif
 
 #endif /* __CONCURRENCY_FUNC_H__ */
->>>>>>> 15493844fa651f9b3e0060682a9835174ce0cbe7

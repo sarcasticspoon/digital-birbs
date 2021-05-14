@@ -14,8 +14,7 @@ void cond_wait (lock_t *m, cond_t *c) {
     // error, return 
     return;
   }
-  // release the lock
-  lock_release(m);
+  asm volatile("cli\n\t");
   // put yourself on the queue and yield
   current_process->is_waiting = 1;
   process_t* tail = c->head;
@@ -27,7 +26,9 @@ void cond_wait (lock_t *m, cond_t *c) {
     }
     tail->next = current_process;
   }
-
+  // release the lock
+  lock_release(m);
+  asm volatile("sei\n\t");
   yield();
   // reacquire the lock after coming back
   lock_acquire(m);
@@ -41,13 +42,15 @@ void cond_signal (lock_t *m, cond_t *c) {
     // error, return 
     return;
   }
-  // release your lock
-  lock_release(m);
+  asm volatile("cli\n\t");
   // wake up next process
   process_t* waiting_process = c->head;
-  waiting_process->is_waiting = 0;
   c->head = c->head->next;
+  waiting_process->is_waiting = 0;
   process_add(waiting_process);
+  // release your lock
+  lock_release(m);
+  asm volatile("sei\n\t");
   return;
  }
 

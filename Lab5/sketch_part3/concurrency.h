@@ -36,6 +36,8 @@ typedef struct process_state {
 
 /* ====== Part 1 ====== */
 
+extern process_t* current_process;
+
 __attribute__((used)) unsigned int process_select (unsigned int cursp);
 /* Called by the runtime system to select another process.
    "cursp" = the stack pointer for the currently running process
