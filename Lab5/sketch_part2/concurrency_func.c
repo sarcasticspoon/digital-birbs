@@ -4,24 +4,24 @@
 #include "concurrency_func.h"
 #include "log.h"
 
-
 extern lock_t* serial_lock;
+
 /* Called by the runtime system to select another process.
    "cursp" = the stack pointer for the currently running process
 */
-
 __attribute__((used)) unsigned int process_select (unsigned int cursp)
 {
     // if no ready processes, continue with current process
-    
     if (!head) {
-//       mlog("changing processes");
       return cursp;         
     }
     
     //if no current process, don't add anything to queue 
     if (cursp == 0 || current_process->is_waiting) {
-        // mlog("no current process or waiting");
+      // save the current stack pointer of the waiting process
+      if(cursp != 0) {
+        current_process->sp = cursp;
+      }
         current_process = head;
       // advance the queue
         head = head->next;
@@ -31,12 +31,11 @@ __attribute__((used)) unsigned int process_select (unsigned int cursp)
       //dont add current process to the back of the queue.
     }
 
-    // mlog("changing processes; process exists");
     // find the end of the process queue
     process_t *end = head;
     while (end->next) {
         end = end->next;
-    } // OR just use tail
+    }
 
     // save the cursp into the current process
     current_process->sp = cursp;
@@ -57,20 +56,21 @@ __attribute__((used)) unsigned int process_select (unsigned int cursp)
     return current_process->sp;
 }
 
+// takes a process_t pointer and adds the process to the end of the queue
+// called in cond_signal to wake up the next process
 void process_add(process_t *p) {
-  // add this process to the queue again
-  lock_acquire(serial_lock);
-  mlog("in process add");
-  lock_release(serial_lock);
   process_t* tail = head;
+  // if no other processes, set this process to the head
   if(!head) {
     head = p;
   } else {
+    // set process to end of the queue
     while(tail->next) {
       tail = tail->next;
     }
     tail->next = p;
   }
+  // null out this process' next variable
   p->next = NULL;
   return;
 }
@@ -109,69 +109,30 @@ int process_create (void (*f)(void), int n) {
     return 0;
 }
 
+// initializes the lock to an unlocked state
 void lock_init (lock_t *l) {
   asm volatile("cli\n\t");
-  // l = (lock_t*) malloc(sizeof(lock_t));
   l->lock = false; 
   asm volatile("sei\n\t");
   return;
 }
 
+// a process continually yields until it can lock the lock
 void lock_acquire (lock_t *l){
   asm volatile("cli\n\t");
+  // if locked, yield and then try again
   while (l->lock) {
     yield();
+    asm volatile("cli\n\t");
   }
-
+  // set the lock to locked
   l->lock = true;
   asm volatile("sei\n\t");
 }
 
-
+// set the lock to an unlocked state
 void lock_release (lock_t *l){
   asm volatile("cli\n\t");
   l->lock = false;
   asm volatile("sei\n\t");
 }
-
-
-/*
-__attribute__((used)) unsigned int process_select (unsigned int cursp)
-{
-
-    // if no ready processes, continue with current process
-    if (!head) {
-      return cursp;         
-    }
-
-    process_t* next = head;
-    // if no current process, don't add anything to queue
-    if (cursp == 0) {
-      current_process->sp = head->sp;
-      head = head->next;
-      free(next);
-      //dont add current process to the back of the queue.
-    } else {
-        //swap sp
-        current_process->sp = head->sp;
-        head->sp = cursp;
-
-        //push original head back to the end of the queue
-    
-        //advance the head pointer down the queue
-        head = head->next;
-
-        // find the end of the process queue
-        process_t *end = head;
-        while (end->next) {
-            end = end->next;
-        }
-
-        //assign head to the back of the list, and kill its original next pointer.
-        end->next = next;
-        next->next = NULL;
-    }
-
-    return current_process->sp;
-}
-*/

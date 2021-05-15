@@ -3,204 +3,79 @@
 
 #include "concurrency_func.h"
 
-extern "C" lock_t* serial_lock;
+extern "C" { extern lock_t* serial_lock; }
 
 /*
  * P1 - P4 each prints the process name and the loop iteration 
  * after a different delay for a different number of iterations
  */
 void p1(){
-  for(int i = 0; i < 100; i++){
-    delay(1);
-    Serial.print("P1:");
-    Serial.println(i);
-  }
+  asm volatile ("cli\n\t");
+  lock_acquire(serial_lock);
+  delay(9);
+  Serial.println("P1 done");
+  lock_release(serial_lock);
+  asm volatile ("sei\n\t");
   return;
 }
 
 void p2(){
-  for(int i = 0; i < 100; i++){
-    delay(2);
-    Serial.print("P2:");
-    Serial.println(i);
-  }
+  asm volatile ("cli\n\t");
+  lock_acquire(serial_lock);
+  delay(9);
+  Serial.println("P2 done");
+  lock_release(serial_lock);
+  asm volatile ("sei\n\t");
   return;
 }
 
-void p3(){
-  for(int i = 0; i < 50; i++){
-    delay(4);
-    Serial.print("P3:");
-    Serial.println(i);
-  }
-  return;
-}
-
-void p4(){
-   for(int i = 0; i < 50; i++){
-    delay(1);
-    Serial.print("P3:");
-    Serial.println(i);
-  }
-  return;
-}
-
-/*
- * P5 and P6 each turn a LED on and off (blinking) in a loop
- */
-void p5(){
-  // turn on an LED
-  for(int i = 0; i < 20; i++) {
-    digitalWrite(LED1, HIGH);
-    delay(100);
-    digitalWrite(LED1, LOW);
-    delay(100);
-  }
-  return;
-}
-
-void p6(){
-  // turn on another LED
-  for(int i = 0; i < 20; i++) {
-    digitalWrite(LED2, HIGH);
-    delay(100);
-    digitalWrite(LED2, LOW);
-    delay(100);
-  }
-  return;
-}
-
-/* 
- *  we expect to see P1 print 1 - 100, then terminate
- *  the main process will then print 'spinning' continuously
- *  this shows that one process will continue to run by itself even if interrupted
-*/
-int test1_setup() {
-  Serial.println("Testing 1 process only P1");
-  if(process_create(p1, 64) < 0) {
+// test a process with much longer wcet and that is feasible
+int test1_setup(){
+  lock_acquire(serial_lock);
+  Serial.println("1 rt job that is feasible");
+  if (serialEventRun) serialEventRun();
+  lock_release(serial_lock);
+  // stack space 128, wcet 50, deadline is 100 millis after posted
+  if(process_create_rtjob(p1, 128, 50, 100) < 0) {
     return -1;
   }
   return 0;
 }
 
-/*
- * here we test 2 concurrent processes with different delays
- * P2 has a delay of 2 ms, loops 100 times
- * P3 has a delay of 4 ms, loops 50 times
- * we expect to see P2 to print twice as many lines as P3 in a time slice
- * ex: P2:1 P2:2 P2:3 P2:4 P3:1 P3:2 P2:5 ...
- * both should interleave the entire time and terminate at around the same time
- * after both have terminated, the main process will print 'spinning'
- */
+// test a process with a shorter deadline than wcet. should not be feasible
 int test2_setup(){
-  Serial.println("Testing 2 processes with different delays. P2 P3");
-  if(process_create(p2, 64) < 0) {
-    return -1;
-  }
-  if(process_create(p3, 64) < 0) {
-    return -1;
-  }
-  return 0;
-}
-
-/*
- * we test 2 concurrent processes that run for different amounts of time
- * P3 and P4 each run for 50 iterations, but have different delays
- * we expect to see P3 and P4 interleave at first, with P4 printing more than P3
- * then P4 terminates, and P3 continues by itself
- * after P3 terminates, the main process will print 'spinning'
- */
-int test3_setup() {
-  Serial.println("Testing 2 processes, 1 finishes first. P3 P4");
-  if(process_create(p3, 64) < 0) {
-    return -1;
-  }
-  if(process_create(p4, 64) < 0) {
+  lock_acquire(serial_lock);
+  Serial.println("1 rt job that is not feasible");
+  if (serialEventRun) serialEventRun();
+  lock_release(serial_lock);
+  // stack space 128, wcet 10, deadline is 9 millis after posted
+  if(process_create_rtjob(p1, 128, 10, 9) < 0) {
     return -1;
   }
   return 0;
 }
 
-/*
- * we test all 4 concurrent processes at the same time
- * all four processes should interleave at the beginning
- * P4 will terminate first, then P1 will terminate
- * P2 and P3 will interleave until both terminate at around the same time
- * the main process will print 'spinning'
- */
-int test4_setup(){
-  Serial.println("Testing 4 processes. P1 P2 P3 P4");
-  if(process_create(p1, 64) < 0) {
-    return -1;
-  }
-  if(process_create(p2, 64) < 0) {
-    return -1;
-  }
-  if(process_create(p3, 64) < 0) {
-    return -1;
-  }
-  if(process_create(p4, 64) < 0) {
-    return -1;
-  }
-  return 0;
-}
-
-/*
- * we visually test the concurrency by having two processes flash separate LEDs
- * we expect to see one LED flash, then turn off as the other LED flashes
- * the LEDs should alternate flashing until both processes terminate at the same time
- * the main process will print 'spinning'
- */
-int test5_setup(){
-  Serial.println("Visual test. Turn on and off LEDS. P5 P6");
-  pinMode(LED1, OUTPUT);
-  pinMode(LED2, OUTPUT);
-  if(process_create(p5, 64) < 0) {
-    return -1;
-  }
-  if(process_create(p6, 64) < 0) {
-    return -1;
-  }
-  return 0;
-}
-
-/*
- * here we test 2 concurrent processes with different delays
- * P2 has a delay of 2 ms, loops 100 times
- * P3 has a delay of 4 ms, loops 50 times
- * we expect to see P2 to print twice as many lines as P3 in a time slice
- * ex: P2:1 P2:2 P2:3 P2:4 P3:1 P3:2 P2:5 ...
- * both should interleave the entire time and terminate at around the same time
- * after both have terminated, the main process will print 'spinning'
- */
-int test6_setup(){
-  Serial.println("Testing 2 processes with different delays. P2 P3");
-  if(process_create_prio(p2, 64, 127) < 0) {
-    return -1;
-  }
-  if(process_create_prio(p3, 64, 126) < 0) {
-    return -1;
-  }
-  return 0;
-}
-
-/*
- * here we test 2 concurrent processes with different delays
- * P2 has a delay of 2 ms, loops 100 times
- * P3 has a delay of 4 ms, loops 50 times
- * we expect to see P2 to print twice as many lines as P3 in a time slice
- * ex: P2:1 P2:2 P2:3 P2:4 P3:1 P3:2 P2:5 ...
- * both should interleave the entire time and terminate at around the same time
- * after both have terminated, the main process will print 'spinning'
- */
-int test7_setup(){
-  Serial.println("Testing 2 processes with different delays. P2 P3");
-  if(process_create_rtjob(p2, 64, 10, 100) < 0) {
-    return -1;
-  }
-  if(process_create_rtjob(p3, 64, 10, 100) < 0) {
-    return -1;
-  }
+// four processes that are feasible
+int test3_setup(){
+  lock_acquire(serial_lock);
+  Serial.println("4 rt jobs that are feasible");
+  if (serialEventRun) serialEventRun();
+  lock_release(serial_lock);
+  // stack space 128, wcet 20, deadline is 60 millis after posted
+//  if(process_create_rtjob(p2, 128, 20, 60) < 0) {
+//    return -1;
+//  }
+//  if(process_create_rtjob(p2, 128, 20, 40) < 0) {
+//    return -1;
+//  }
+  process_create_rtjob(p1, 128, 10, 50);
+  process_create_rtjob(p2, 128, 10, 60);
+//  if( < 0) {
+//    return -1;
+//  }
+//  if(process_create_rtjob(p1, 128, 10, 20) < 0) {
+//    return -1;
+//  }
   return 0;
 }
 
@@ -209,11 +84,15 @@ int test7_setup(){
  * to see different test cases
  */
 void setup() {
+  asm volatile ("cli\n\t");
   Serial.begin(9600);
+  serial_lock = (lock_t*) malloc(sizeof(lock_t));
   lock_init(serial_lock);
-  if(test7_setup() < 0) {
+  if(test3_setup() < 0) {
+    asm volatile ("sei\n\t");
     return;
   }
+  asm volatile ("sei\n\t");
 }
 
 void loop() {

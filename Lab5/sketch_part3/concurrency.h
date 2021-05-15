@@ -19,7 +19,7 @@ extern "C" {
 typedef struct process_state {
    unsigned int sp; /* stack pointer */
    struct process_state *next; /* link to next process */
-   unsigned int prio;
+   unsigned char prio;
    double start; //all in milliseconds
    double deadline;
    double wcet;

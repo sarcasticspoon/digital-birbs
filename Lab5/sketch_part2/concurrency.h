@@ -16,7 +16,8 @@ extern "C" {
 typedef struct process_state {
    unsigned int sp; /* stack pointer */
    struct process_state *next; /* link to next process */
-   unsigned int is_waiting;
+   unsigned int is_waiting; 
+   /* indicates if the process is already on a waiting queue and should not be added to the ready queue again */
 } process_t;
    /* opaque definition of process type; you must provide this
       implementation.

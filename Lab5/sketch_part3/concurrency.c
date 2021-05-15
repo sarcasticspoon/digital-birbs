@@ -60,25 +60,27 @@ __attribute__((used)) void process_terminated ()
 		time_elapsed = time_elapsed - current_process->start;
 		// check to see if wcet is accurate
 		diff = current_process->wcet - time_elapsed;
-		// TODO we need to report the difference, negative means took longer than expected
-		// TODO check to see if we missed the deadline and if it's because of this difference
+    if(diff > 0) {
+      mlog("finished earlier than wcet by ");
+      dlog(diff);
+      mlog("ms\n");
+    } else if (diff < 0) {
+      mlog("took longer than wcet by ");
+      dlog(0 - diff);
+      mlog("ms\n");
+    }
 		double deadline_diff = current_process->deadline - (double) millis();
 		if(deadline_diff < 0) {
 			// means that we missed the deadline
 			// check to see if the difference can be accounted for by the difference between wcet and actual execution time
 			if(diff < 0) {
-			if(deadline_diff - diff >= 0) {
-				// means we missed deadline because of wcet difference
-				// ie wcet difference is greater or equal to deadline miss
-				// TODO report this somehow
-				mlog("process terminated, the wcet is: ");
-				dlog(current_process->wcet);
-				mlog(" execution time is: ");
-				dlog(time_elapsed);
-				mlog(" diff is: ");
-				dlog(diff);
-				mlog("\n");
-			}
+  			if(deadline_diff - diff >= 0) {
+  				// means we missed deadline because of wcet difference
+  				// ie wcet difference is greater or equal to deadline miss
+  				mlog("due to wcet difference, missed deadline by ");
+          dlog(deadline_diff);
+          mlog("ms\n");
+  			}
 			}
 		}
 	}

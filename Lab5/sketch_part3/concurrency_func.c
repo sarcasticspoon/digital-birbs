@@ -86,7 +86,8 @@ __attribute__((used)) unsigned int process_select (unsigned int cursp)
 
     //if RT job -> start the timer
     if( current_process->start == 0) {
-      // current_process->start = (double) clock() / CLOCKS_PER_SEC * 1000;
+      mlog("just started new process");
+       current_process->start = (double) millis();
     }
 
     // return current_process' sp
@@ -167,7 +168,7 @@ int process_create_prio (void (*f)(void), int n, unsigned char prio) {
         return -1;
     };
     //set user selected priority
-    proc->prio = (unsigned int)prio;
+    proc->prio = prio;
     // initialize values for process, add to tail of linked list
     proc->sp = sp;
     // why do we need to of these? TODO
@@ -213,8 +214,8 @@ int process_create_rtjob (void (*f)(void), int n, unsigned int wcet, unsigned in
   proc->prio = 0;
   proc->next = NULL;
   proc->start = 0;
-  proc->deadline = ((double) millis()) + deadline; // convert to milliseconds
-  proc->wcet = wcet;
+  proc->deadline = ((double) millis()) + (double) deadline; // convert to milliseconds
+  proc->wcet = (double) wcet;
   
   // dlog(proc->deadline);
   // dlog(proc->wcet);
@@ -223,9 +224,9 @@ int process_create_rtjob (void (*f)(void), int n, unsigned int wcet, unsigned in
   process_t *last_of_rt;
   if(!head) {
       head = proc; 
-      lock_acquire(serial_lock);
+//      lock_acquire(serial_lock);
       mlog("assigning head\n");
-      lock_release(serial_lock);
+//      lock_release(serial_lock);
     } else {
       last_of_rt = head;
       while (last_of_rt->next) {
@@ -246,29 +247,34 @@ int process_create_rtjob (void (*f)(void), int n, unsigned int wcet, unsigned in
   // check to see if schedule is feasible
   process_t* tmp = head;
   // start time is current processes start time + current_proc's wcet
-  double start = millis(); 
+  double start = (double) millis(); 
   if (current_process) {
     start = current_process->wcet + current_process->start; 
   }
-  lock_acquire(serial_lock);
-  dlog(tmp->deadline);
-  dlog(start);
-  dlog(tmp->wcet);
-  lock_release(serial_lock);
-  //-(clock()-current_process->start);
-  while(tmp->prio == 0) {
+//  lock_acquire(serial_lock);
+//  mlog("deadline: ");
+//  dlog(tmp->deadline);
+//  mlog(" start: ");
+//  dlog(start);
+//  mlog(" wcet: ");
+//  dlog(tmp->wcet);
+//  mlog("deadline: ");
+//  dlog(tmp->deadline);
+//  lock_release(serial_lock);
+  while(tmp && tmp->prio == 0) {
+    // if deadline is before start + wcet, not feasible
     if (tmp->deadline < start + tmp->wcet) {
-      lock_acquire(serial_lock);
-      mlog("not feasible\n");
+      mlog("schedule not feasible; task rejected\n");
+//      lock_acquire(serial_lock);
+//      mlog("after while + if\n");
+      mlog("deadline: ");
       dlog(tmp->deadline);
+      mlog(" start: ");
       dlog(start);
+      mlog(" wcet: ");
       dlog(tmp->wcet);
+//      ilog(tmp->prio);
       mlog("\n");
-      if (tmp->deadline < start + tmp->wcet){}
-      dlog(tmp->deadline);
-      dlog(start);
-      dlog(tmp->wcet);
-      lock_release(serial_lock);
       //TODO pull out the process from the queue 
       if (last_of_rt) {
         last_of_rt->next = last_of_rt->next->next;
@@ -280,7 +286,6 @@ int process_create_rtjob (void (*f)(void), int n, unsigned int wcet, unsigned in
       }
       return -1; //schedule is not feasible
     }
-
     start = start + tmp->wcet;
     tmp = tmp->next;
   }
@@ -307,6 +312,7 @@ void lock_acquire (lock_t *l){
   asm volatile("cli\n\t");
   while (l->lock) {
     yield();
+    asm volatile("cli\n\t");
   }
 
   l->lock = true;
@@ -319,4 +325,3 @@ void lock_release (lock_t *l){
   l->lock = false;
   asm volatile("sei\n\t");
 }
-

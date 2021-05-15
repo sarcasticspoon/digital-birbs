@@ -2,8 +2,6 @@
 #include <stddef.h>
 #include "log.h"
 
-extern lock_t *serial_lock;
-
 /* initialize condition variable queue and associate it with lock */
 void cond_init (lock_t *m, cond_t *c) {
   c->lock = m;
@@ -33,22 +31,14 @@ void cond_wait (lock_t *m, cond_t *c) {
   lock_release(m);
   asm volatile("sei\n\t");
   yield();
-  // reacquire the lock after coming back
-  lock_acquire(m);
 }
 
 /* wake up the first process that is waiting on this condition variable */
 /* assume that this is called after checking that there is a process waiting */
 void cond_signal (lock_t *m, cond_t *c) {
-  lock_acquire(serial_lock);
-  mlog("in condition signal");
-  lock_release(serial_lock);
   // check to see if lock is the same
   if(m != c->lock) {
     // error, return 
-    lock_acquire(serial_lock);
-    mlog("locks do not match");
-    lock_release(serial_lock);
     return;
   }
   asm volatile("cli\n\t");
@@ -57,8 +47,6 @@ void cond_signal (lock_t *m, cond_t *c) {
   c->head = c->head->next;
   waiting_process->is_waiting = 0;
   process_add(waiting_process);
-  // release your lock
-  lock_release(m);
   asm volatile("sei\n\t");
   return;
  }
@@ -67,8 +55,9 @@ void cond_signal (lock_t *m, cond_t *c) {
 int cond_waiting (lock_t *m, cond_t *c) {
   // check to see if the lock is the same
   if(m != c->lock) {
-    return 1;
+    return 2;
   }
+  // return if there is a head to the queue
   if(c->head) {
     return 1;
   }

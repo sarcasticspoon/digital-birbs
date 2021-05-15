@@ -29,9 +29,6 @@ process_t *current_process;
 process_t *head;
 /* the head of the ready queue */
 
-// extern process_t *tail;
-/* the end of the ready queue */
-
 __attribute__((used)) unsigned int process_select (unsigned int cursp);
 /* Called by the runtime system to select another process.
    "cursp" = the stack pointer for the currently running process
@@ -46,13 +43,12 @@ int process_create (void (*f)(void), int n);
 /* Create a new process */
 
 
-
 /* ===== Part 2 ====== */
 
 typedef struct lock_state{
-    bool lock;
+    volatile bool lock;
 } lock_t;
-  /* you have to define the lock_state structure */
+/* states whether the lock is locked or not */
 
 void lock_init (lock_t *l);
 void lock_acquire (lock_t *l);
