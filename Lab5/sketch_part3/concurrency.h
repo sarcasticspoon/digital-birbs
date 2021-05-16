@@ -19,11 +19,11 @@ extern "C" {
 typedef struct process_state {
    unsigned int sp; /* stack pointer */
    struct process_state *next; /* link to next process */
-   unsigned char prio;
+   unsigned char prio; /* priority of process, where 0 is highest priority and 255 is lowest - 0 is reserved for real-time jobs */
    double start; //all in milliseconds
    double deadline;
    double wcet;
-   unsigned char* bp;
+   unsigned char* bp; /* stack base pointer */
 } process_t;
    /* opaque definition of process type; you must provide this
       implementation.

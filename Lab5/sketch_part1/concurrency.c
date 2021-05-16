@@ -49,7 +49,8 @@ __attribute__((used)) void process_terminated ()
 	asm volatile (
 		"cli \n\t"
 		);
-		
+
+  // free the process stack;
   free(current_process->bp);
   free(current_process);
 
@@ -179,6 +180,7 @@ unsigned int process_init (void (*f) (void), int n, process_t *proc)
   /* Create a new process */
   n += EXTRA_SPACE + EXTRA_PAD;
   stkspace = (unsigned char *) process_malloc (n);
+  // save the process base pointer
   proc->bp = stkspace;
 
   if (stkspace == NULL) {

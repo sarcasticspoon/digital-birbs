@@ -28,11 +28,6 @@ process_t *head;
  */
 __attribute__((used)) unsigned int process_select (unsigned int cursp)
 {
-  //test! 
-  // mlog("calling_process_select");
-  // ilog(current_process->prio);
-  // ilog(current_process->prio);
-  // disable interrupts outside
     // if no ready processes, continue with current process, return current sp
     if (!head) {
       return cursp;         
@@ -46,9 +41,23 @@ __attribute__((used)) unsigned int process_select (unsigned int cursp)
         head = head->next;
       // NULL out current process' next variable 
         current_process->next = NULL;
+      //if RT job and timer not started -> start the timer
+        if( current_process->start == 0) {
+          mlog("just started new process at: ");
+          current_process->start = (double) millis();
+          dlog(current_process->start);
+          mlog("ms\n");
+        }
       // return current process' sp
         return current_process->sp;
       //dont add current process to the back of the queue.
+    }
+    
+    // if it is a real-time job, and not terminated, return current sp
+    // real time jobs should not be interrupted.
+    if (current_process->deadline < head->deadline){
+      current_process->sp = cursp;
+      return cursp;
     }
     
     //if next processes priority is lower than current process, do nothing
@@ -84,12 +93,6 @@ __attribute__((used)) unsigned int process_select (unsigned int cursp)
     // NULL out current process' next variable
     current_process->next = NULL;
 
-    //if RT job -> start the timer
-    if( current_process->start == 0) {
-      mlog("just started new process");
-       current_process->start = (double) millis();
-    }
-
     // return current_process' sp
     return current_process->sp;
 }
@@ -98,6 +101,9 @@ __attribute__((used)) unsigned int process_select (unsigned int cursp)
 void process_start (void) {
   // intialize the current_process variable
     current_process = NULL;
+    lock_acquire(serial_lock);
+    mlog("process starting\n");
+    lock_release(serial_lock);
     process_begin();
 };
 
@@ -129,6 +135,7 @@ int process_create (void (*f)(void), int n) {
     proc->start = -1;
     proc->deadline = -1;
     proc->wcet = 0;
+    // find the position in the queue of appropriate priority
     if(!head) {
       head = proc; 
     } else {
@@ -178,6 +185,7 @@ int process_create_prio (void (*f)(void), int n, unsigned char prio) {
     proc->start = -1;
     proc->deadline = -1;
     proc->wcet = 0;
+    // find the position in the queue of appropriate priority
     if(!head) {
       head = proc; 
     } else {
@@ -217,16 +225,11 @@ int process_create_rtjob (void (*f)(void), int n, unsigned int wcet, unsigned in
   proc->deadline = ((double) millis()) + (double) deadline; // convert to milliseconds
   proc->wcet = (double) wcet;
   
-  // dlog(proc->deadline);
-  // dlog(proc->wcet);
-  // dlog(millis());
-  // insert job into appropriate place in queue
+  // insert job into appropriate place in queue, as a real time job it has priority 0 and should be placed in order of earliest deadline first.
   process_t *last_of_rt;
   if(!head) {
       head = proc; 
-//      lock_acquire(serial_lock);
       mlog("assigning head\n");
-//      lock_release(serial_lock);
     } else {
       last_of_rt = head;
       while (last_of_rt->next) {
@@ -234,9 +237,7 @@ int process_create_rtjob (void (*f)(void), int n, unsigned int wcet, unsigned in
         if (last_of_rt->deadline < proc->deadline && last_of_rt->next->deadline > proc->deadline) break;
         last_of_rt = last_of_rt->next;
     }
-      lock_acquire(serial_lock);
       mlog("adding to list\n");
-      lock_release(serial_lock);
 
       // add the current process to the middle of the queue after the last process of matching priority
       process_t *tmp = last_of_rt->next;
@@ -244,38 +245,26 @@ int process_create_rtjob (void (*f)(void), int n, unsigned int wcet, unsigned in
       last_of_rt->next->next = tmp;
     }
 
-  // check to see if schedule is feasible
+  // check to see if schedule is feasible, feasible schedules are ones in which all
+  // processes finish before their deadlines. 
   process_t* tmp = head;
   // start time is current processes start time + current_proc's wcet
   double start = (double) millis(); 
   if (current_process) {
     start = current_process->wcet + current_process->start; 
   }
-//  lock_acquire(serial_lock);
-//  mlog("deadline: ");
-//  dlog(tmp->deadline);
-//  mlog(" start: ");
-//  dlog(start);
-//  mlog(" wcet: ");
-//  dlog(tmp->wcet);
-//  mlog("deadline: ");
-//  dlog(tmp->deadline);
-//  lock_release(serial_lock);
   while(tmp && tmp->prio == 0) {
     // if deadline is before start + wcet, not feasible
     if (tmp->deadline < start + tmp->wcet) {
       mlog("schedule not feasible; task rejected\n");
-//      lock_acquire(serial_lock);
-//      mlog("after while + if\n");
       mlog("deadline: ");
       dlog(tmp->deadline);
       mlog(" start: ");
       dlog(start);
       mlog(" wcet: ");
       dlog(tmp->wcet);
-//      ilog(tmp->prio);
       mlog("\n");
-      //TODO pull out the process from the queue 
+      //pull out the process from the queue 
       if (last_of_rt) {
         last_of_rt->next = last_of_rt->next->next;
         free(proc->bp);

@@ -53,9 +53,11 @@ __attribute__((used)) void process_terminated ()
 		"cli\n\t"
   );
 
+  mlog("proc terminated\n");
+
+  // code for reporting time data of real-time jobs 
 	if(current_process->deadline > 0){
 		double diff = 0;
-		// check to see if wcet is accurate
 		double time_elapsed = (double) millis();
 		time_elapsed = time_elapsed - current_process->start;
 		// check to see if wcet is accurate
@@ -68,11 +70,20 @@ __attribute__((used)) void process_terminated ()
       mlog("took longer than wcet by ");
       dlog(0 - diff);
       mlog("ms\n");
+    } else {
+      mlog("execution time equals wcet:");
+      dlog(current_process->wcet);
+      mlog("ms\n");
     }
+
+    
 		double deadline_diff = current_process->deadline - (double) millis();
 		if(deadline_diff < 0) {
 			// means that we missed the deadline
 			// check to see if the difference can be accounted for by the difference between wcet and actual execution time
+      mlog("deadline missed by:");
+      dlog(deadline_diff);
+      mlog("ms\n");
 			if(diff < 0) {
   			if(deadline_diff - diff >= 0) {
   				// means we missed deadline because of wcet difference
@@ -82,11 +93,15 @@ __attribute__((used)) void process_terminated ()
           mlog("ms\n");
   			}
 			}
+		} else {
+      mlog("deadline met by:");
+      dlog(deadline_diff);
+      mlog("ms\n");
 		}
 	}
 
 	
-  
+  // here we free all the memory associated with the process stack
   free(current_process->bp);
   free(current_process);
   
@@ -216,6 +231,7 @@ unsigned int process_init (void (*f) (void), int n, process_t* proc)
   /* Create a new process */
   n += EXTRA_SPACE + EXTRA_PAD;
   stkspace = (unsigned char *) process_malloc (n);
+  // we save away the base pointer so that it can be freed in process_terminate
   proc->bp = stkspace;
 
   if (stkspace == NULL) {

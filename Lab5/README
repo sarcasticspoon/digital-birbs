@@ -1,9 +1,34 @@
+Part 1:
+
+1. In order to ensure that process_create works reliably and can be called at any time, we need to ensure mutual exclusion on the process queue. The two processes that manipualte the queue are process_create and process_select. Since we are assuming that we are running this code on a uniprocessor, preventing interrupts at any point in the two functions can ensure mutual exclusion. process_select is already protected by the functions that call it, so all we have to do is add disable and enable interrupt calls to process_create.
+
+2. In order to ensure that we can free the space that is allocated to each process, we need to store the base pointer and call free on it. We achieve this by including a pointer for the base pointer in the current proc and setting it by passing a pointer to the process struct into the process_init function, and letting process_init save the base pointer. Subsequently, we call free on the base pointer in process_terminate.
+
+We have two test cases to demonstrate that:
+1) process_create can be called at any time.
+2) processes are successfully freed.
+
 Part 2: Implemented condition variables associated with a lock and a waiting queue of processes, and implicitly (by programmer use) a condition. The cv contains a pointer to a lock and a pointer to a process that forms the head of processes waiting on the cv. When a process calls cond_wait, the cv checks to see if the lock passed in matches its lock, and if so, puts the process on the back of its waiting queue and sets the process' is_waiting variable to 1. When the current process switches out in process_select, the is_waiting variable tells the function not to add the process to the ready queue again as it would normally. 
 In cond_signal, the cv wakes up the next process on the waiting queue of the condition variable by putting it back onto the ready queue (calling process_add to do so). It does not release the lock so ownership of the lock passes to the woken up process and ensures that no other process gets the lock. 
-Test cases: we tested this part by using the reader/writer problem. In test1, there can only be one user at time acccessing the shared book variable. In all other tests, readers must wait until there are no writers, and writers must wait until there are no users (writers or readers) before modifying the variable. Multiple readers may access the variable at the same time, but there may not be multiple writers. 
+Test cases: we tested this part by using the reader/writer problem. 
+
+1) In test1, there can only be one user at time acccessing the shared book variable. 
+2 and 3) In all other tests, readers must wait until there are no writers, and writers must wait until there are no users (writers or readers) before modifying the variable. Multiple readers may access the variable at the same time, but there may not be multiple writers. 
 
 Part 3: Scheduling 
 Implemented priority scheduling and real time scheduling. 
+
 When creating a job with a priority, all jobs are assigned a default priority of 128. The job is added to the ready queue after a job with a higher priority and before a job with a lower priority (edge cases accounted for). In process_select(), if the next job in the queue has a lower priority, the current job simply continues executing because all jobs in the ready queue are ordered in order of decreasing priority. If the next job in the queue has the same priority, we add the current process just behind the last process in the queue that has the same priority (the block of processes with the same priority) so these processes are scheduled round-robin. 
+
 Real time jobs have the highest priority, 0, and will always be placed at the head of the ready queue. When process_create_rtjob() is called, it creates a process_t struct with an absolute deadline (the current millis() value + the relative deadline given). Then, it places the process in the block of real time jobs in the ready queue in order of earliest deadline first. It evalutes the feasibility of the schedule by considering just the first process in the queue and seeing if the wcet if this process + the current start time exceeds that process' absolute deadline. If it does, we consider the schedule composed of the first and second processes by incrementing the start time by the wcet of the previous process and then comparing start + wcet to the deadline of the second process. This continues until all realtime are put back into the schedule. If at any point, the schedule is infeasible, we remove the most recently added job and return. 
+
 In process_select(), we update the start property of real time jobs by assigning it the current value of millis(). Then when the process terminates, we compare the current time to this stored start time to derive the actual execution time, reporting the difference between the actual et and the wcet. If the process missed its deadline, we compare the difference in deadlines to the difference in execution times; if the process was slower than expected by a value greater than the difference in deadlines, then we report that the process missed its deadline because of an incorrect wcet.
+
+We have six test cases for this part.
+
+1) the first test case demonstrates that a single real time job with a reasonable wcet and deadline passes the feasibility check and runs successfully.
+2) the second test case demonstrates that a single real time job with an unreasonable wcet that exceeds the deadline fails the feasibility check and does not run.
+3) the third test case demonstrates that four processes with reasonable wcets and deadlines can be scheduled successfully and passes the feasibility check, and that they run in the order of earliest deadline first.
+4) the fourth test case demonstrates three processes with reasonable wcets and deadlines that can be scheduled successfully, and one process that has an unreasonable deadline. Only that process is rejected and not scheduled. The other processes run successfully. In this test case and all of the above test cases, the difference in deadline and wcet are reported. 
+5) the fifth test case demonstrates that priority scheduling works and one process with a higher priority will always run to completion before a process of lower priority.
+6) the sixth test case demonstrates that processes with the same priority will execute with round-robin scheduling.

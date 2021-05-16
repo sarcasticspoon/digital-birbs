@@ -85,7 +85,7 @@ int test2_setup() {
  */
 void setup() {
   Serial.begin(9600);
-  if(test2_setup() < 0) {
+  if(test1_setup() < 0) {
     return;
   }
 }
